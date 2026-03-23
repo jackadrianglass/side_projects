@@ -32,7 +32,7 @@ impl SimplePluginCommand for FromWkt {
         vec!["geo", "geospatial"]
     }
 
-    fn examples(&self) -> Vec<Example> {
+    fn examples(&self) -> Vec<Example<'_>> {
         Vec::new()
     }
 
@@ -43,7 +43,7 @@ impl SimplePluginCommand for FromWkt {
         _call: &EvaluatedCall,
         input: &Value,
     ) -> Result<Value, LabeledError> {
-        let Value::String { val, internal_span } = input else {
+        let Value::String { val, internal_span, .. } = input else {
             return Err(LabeledError::new("Must input a string type"));
         };
 

@@ -32,7 +32,7 @@ impl SimplePluginCommand for IntoWkt {
         vec!["geo", "geospatial"]
     }
 
-    fn examples(&self) -> Vec<Example> {
+    fn examples(&self) -> Vec<Example<'_>> {
         Vec::new()
     }
 

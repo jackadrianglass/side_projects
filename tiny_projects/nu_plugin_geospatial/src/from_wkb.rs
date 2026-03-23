@@ -33,7 +33,7 @@ impl SimplePluginCommand for FromWkb {
         vec!["geo", "geospatial"]
     }
 
-    fn examples(&self) -> Vec<Example> {
+    fn examples(&self) -> Vec<Example<'_>> {
         Vec::new()
     }
 
@@ -44,7 +44,7 @@ impl SimplePluginCommand for FromWkb {
         _call: &EvaluatedCall,
         input: &Value,
     ) -> Result<Value, LabeledError> {
-        let Value::Binary { val, internal_span } = input else {
+        let Value::Binary { val, internal_span, .. } = input else {
             return Err(LabeledError::new("Must input a binary type"));
         };
 
