@@ -7,7 +7,7 @@ Doing each day in a different language
 - [x] Day 3: Nim
 - [x] Day 4: Crystal
 - [x] Day 5: Scala
-- [ ] Day 6: Clojure
+- [x] Day 6: Clojure
 - [ ] Day 7: Gleam
 - [ ] Day 8: Idris
 - [ ] Day 9: Kotlin
@@ -96,3 +96,18 @@ Cons:
 - I found the documentation around libraries hard to navigate. Maybe I'm just dumb but it was difficult to find the thing that I wanted. More often ended up on the "walk through" page but that wasn't super enlightening.
 - Error messages weren't easy to parse sometimes
 - Build times were weirdly long for how simple of an application it was (just a cli)
+
+# Clojure
+
+It's fun! I find myself missing a type system very badly in this language
+
+Pros:
+- Cute little language
+- Pretty easy to pickup given the small syntax
+- Very satisfying to write once you get it
+
+Cons:
+- Hard to debug
+- The repl isn't as featureful as I would like (and it's the thing that the language enthusiasts like about it)
+- Docs are kind of meh. Probably just because I miss the type system
+- No static type system
