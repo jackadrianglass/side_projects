@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import Boids
 import Browser
 import Browser.Events as Events
 import FeatherIcons as Icons
@@ -21,14 +22,17 @@ main =
         , view = view
         , update = update
         , subscriptions =
-            \_ ->
-                Events.onResize
-                    (\width height ->
-                        WindowResized
-                            { width = toFloat width
-                            , height = toFloat height
-                            }
-                    )
+            \model ->
+                Sub.batch
+                    [ Events.onResize
+                        (\width height ->
+                            WindowResized
+                                { width = toFloat width
+                                , height = toFloat height
+                                }
+                        )
+                    , Sub.map BoidsMsg (Events.onAnimationFrameDelta Boids.OnFrame)
+                    ]
         }
 
 
@@ -37,7 +41,10 @@ main =
 
 
 type alias Model =
-    { drawingModel : TiledLines.Model, scrollBarWidth : Float }
+    { drawingModel : TiledLines.Model
+    , boidsModel : Boids.Model
+    , scrollBarWidth : Float
+    }
 
 
 type alias Flags =
@@ -56,20 +63,41 @@ init flags =
             , backgroundColor = Theme.theme.base
             }
 
+        boidsConfig : Boids.Config
+        boidsConfig =
+            let
+                default =
+                    Boids.defaultConfig
+            in
+            { default
+                | numBoids = 100
+                , boidColor = Theme.theme.rose
+                , backgroundColor = Nothing
+            }
+
+        ( initialBoidsModel, boidsCmd ) =
+            Boids.init { boidsConfig | width = drawingSettings.width, height = drawingSettings.height }
+
         model : Model
         model =
             { drawingModel = { settings = drawingSettings, drawingDirections = Nothing }
+            , boidsModel = initialBoidsModel
             , scrollBarWidth = flags.scrollBarWidth
             }
     in
-    ( model, Random.generate Ready <| TiledLines.generateDirections drawingSettings )
+    ( model
+    , Cmd.batch
+        [ Random.generate Ready <| TiledLines.generateDirections drawingSettings
+        , Cmd.map BoidsMsg boidsCmd
+        ]
+    )
 
 
 
 -- View --
 
 
-view : Model -> Html msg
+view : Model -> Html Msg
 view model =
     Html.div []
         [ splashScreen model
@@ -82,7 +110,7 @@ view model =
         ]
 
 
-linkTreeIcon : Icons.Icon -> String -> Html.Html msg
+linkTreeIcon : Icons.Icon -> String -> Html Msg
 linkTreeIcon icon url =
     Html.a [ Attr.href url ]
         [ icon
@@ -93,11 +121,19 @@ linkTreeIcon icon url =
         ]
 
 
-splashScreen : Model -> Html.Html msg
+splashScreen : Model -> Html Msg
 splashScreen model =
     Html.div
         [ Attr.class "splash-screen" ]
-        [ Html.div [ Attr.class "splash-screen-background" ] [ TiledLines.view model.drawingModel ]
+        [ Html.div [ Attr.class "splash-screen-background" ]
+            [ TiledLines.view model.drawingModel
+            , Html.div
+                [ Attr.style "position" "absolute"
+                , Attr.style "top" "0"
+                , Attr.style "left" "0"
+                ]
+                [ Html.map BoidsMsg (Boids.viewOverlay model.boidsModel) ]
+            ]
         , Html.div [ Attr.class "splash-screen-foreground" ]
             [ Html.div [ Attr.class "splash-screen-box" ]
                 [ Html.h1 [] [ Html.text "Jack Glass" ]
@@ -111,7 +147,7 @@ splashScreen model =
         ]
 
 
-about : Html msg
+about : Html Msg
 about =
     Html.div [ Attr.class "card" ]
         [ Html.div [ Attr.class "card-content" ]
@@ -148,7 +184,7 @@ developers hone their craft.
         ]
 
 
-skills : Html msg
+skills : Html Msg
 skills =
     Html.div [ Attr.class "skill-tree" ]
         [ Html.h1 [] [ Html.text "Languages, Tools & Frameworks" ]
@@ -250,6 +286,7 @@ skills =
 type Msg
     = Ready (List Int)
     | WindowResized { width : Float, height : Float }
+    | BoidsMsg Boids.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -279,7 +316,26 @@ update msg model =
                 newDrawingModel =
                     { oldDrawingModel | settings = newSettings, drawingDirections = Nothing }
 
+                oldBoidsModel =
+                    model.boidsModel
+
+                oldBoidsConfig =
+                    oldBoidsModel.config
+
+                newBoidsConfig =
+                    { oldBoidsConfig | width = newSettings.width, height = newSettings.height }
+
+                newBoidsModel =
+                    { oldBoidsModel | config = newBoidsConfig }
+
                 newModel =
-                    { model | drawingModel = newDrawingModel }
+                    { model | drawingModel = newDrawingModel, boidsModel = newBoidsModel }
             in
             ( newModel, Random.generate Ready <| TiledLines.generateDirections newSettings )
+
+        BoidsMsg bMsg ->
+            let
+                ( newBoidsModel, bCmd ) =
+                    Boids.update bMsg model.boidsModel
+            in
+            ( { model | boidsModel = newBoidsModel }, Cmd.map BoidsMsg bCmd )

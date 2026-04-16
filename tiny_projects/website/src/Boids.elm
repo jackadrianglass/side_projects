@@ -8,6 +8,7 @@ import Canvas.Settings.Advanced exposing (rotate, transform, translate)
 import Canvas.Settings.Line exposing (lineWidth)
 import Color
 import Html exposing (Html)
+import Html.Attributes as Attr
 import Random
 
 
@@ -27,6 +28,8 @@ type alias Config =
     , maxSpeed : Float
     , minSpeed : Float
     , maxForce : Float
+    , boidColor : Color.Color
+    , backgroundColor : Maybe Color.Color
     }
 
 
@@ -43,6 +46,8 @@ defaultConfig =
     , maxSpeed = 3
     , minSpeed = 1.5
     , maxForce = 0.1
+    , boidColor = Color.black
+    , backgroundColor = Just Color.white
     }
 
 
@@ -276,22 +281,34 @@ view : Model -> Html Msg
 view model =
     Canvas.toHtml ( round model.config.width, round model.config.height )
         []
-        (clearCanvas model.config :: List.map drawBoid model.boids)
+        (clearCanvas model.config :: List.map (drawBoid model.config) model.boids)
+
+
+viewOverlay : Model -> Html Msg
+viewOverlay model =
+    Canvas.toHtml ( round model.config.width, round model.config.height )
+        [ Attr.style "pointer-events" "none" ]
+        (clearCanvas model.config :: List.map (drawBoid model.config) model.boids)
 
 
 clearCanvas : Config -> Renderable
 clearCanvas config =
-    shapes [ fill Color.white ] [ rect ( 0, 0 ) config.width config.height ]
+    case config.backgroundColor of
+        Just color ->
+            shapes [ fill color ] [ rect ( 0, 0 ) config.width config.height ]
+
+        Nothing ->
+            clear ( 0, 0 ) config.width config.height
 
 
-drawBoid : Boid -> Renderable
-drawBoid boid =
+drawBoid : Config -> Boid -> Renderable
+drawBoid config boid =
     let
         angle =
             atan2 boid.velocity.y boid.velocity.x
     in
     shapes
-        [ fill Color.black
+        [ fill config.boidColor
         , transform
             [ translate boid.position.x boid.position.y
             , rotate angle
