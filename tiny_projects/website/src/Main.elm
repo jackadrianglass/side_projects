@@ -3,6 +3,7 @@ module Main exposing (main)
 import Boids
 import Browser
 import Browser.Events as Events
+import Color
 import FeatherIcons as Icons
 import Html exposing (Html)
 import Html.Attributes as Attr
@@ -63,20 +64,19 @@ init flags =
             , backgroundColor = Theme.theme.base
             }
 
-        boidsConfig : Boids.Config
-        boidsConfig =
+        ( initialBoidsModel, boidsCmd ) =
             let
-                default =
+                defaultConfig =
                     Boids.defaultConfig
             in
-            { default
-                | numBoids = 100
-                , boidColor = Theme.theme.rose
-                , backgroundColor = Nothing
-            }
-
-        ( initialBoidsModel, boidsCmd ) =
-            Boids.init { boidsConfig | width = drawingSettings.width, height = drawingSettings.height }
+            Boids.init
+                { defaultConfig
+                    | numBoids = 1000
+                    , boidColor = Theme.theme.rose
+                    , backgroundColor = Nothing
+                    , width = drawingSettings.width
+                    , height = drawingSettings.height
+                }
 
         model : Model
         model =
@@ -316,22 +316,18 @@ update msg model =
                 newDrawingModel =
                     { oldDrawingModel | settings = newSettings, drawingDirections = Nothing }
 
-                oldBoidsModel =
-                    model.boidsModel
-
-                oldBoidsConfig =
-                    oldBoidsModel.config
-
-                newBoidsConfig =
-                    { oldBoidsConfig | width = newSettings.width, height = newSettings.height }
-
-                newBoidsModel =
-                    { oldBoidsModel | config = newBoidsConfig }
+                ( newBoidsModel, boidsCmd ) =
+                    Boids.update (Boids.Resize newSettings.width newSettings.height) model.boidsModel
 
                 newModel =
                     { model | drawingModel = newDrawingModel, boidsModel = newBoidsModel }
             in
-            ( newModel, Random.generate Ready <| TiledLines.generateDirections newSettings )
+            ( newModel
+            , Cmd.batch
+                [ Random.generate Ready <| TiledLines.generateDirections newSettings
+                , Cmd.map BoidsMsg boidsCmd
+                ]
+            )
 
         BoidsMsg bMsg ->
             let
