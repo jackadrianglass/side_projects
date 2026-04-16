@@ -2,43 +2,49 @@ module Boids exposing (..)
 
 import Browser
 import Browser.Events
-import Canvas exposing (..)
-import Canvas.Settings exposing (..)
-import Canvas.Settings.Advanced exposing (rotate, transform, translate)
-import Canvas.Settings.Line exposing (lineWidth)
 import Color
 import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Attributes as Attr
+import Math.Matrix4 as Mat4 exposing (Mat4)
+import Math.Vector2 as Vec2 exposing (Vec2, vec2)
+import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Random
+import WebGL exposing (Entity, Mesh, Shader)
 
 
 
 -- CONFIG --
 
 
+{-| Configuration for the boid simulation.
+-}
 type alias Config =
     { width : Float
     , height : Float
     , numBoids : Int
-    , visualRange : Float
-    , minDistance : Float
-    , cohesionFactor : Float
-    , alignmentFactor : Float
-    , separationFactor : Float
+
+    -- Simulation Parameters
+    , visualRange : Float -- How far each boid can "see"
+    , minDistance : Float -- Distance at which boids start avoiding each other
+    , cohesionFactor : Float -- How strongly boids move toward the center of the flock
+    , alignmentFactor : Float -- How strongly boids match the velocity of their neighbors
+    , separationFactor : Float -- How strongly boids avoid crowding
     , maxSpeed : Float
     , minSpeed : Float
-    , maxForce : Float
+    , maxForce : Float -- Maximum steering force applied in one frame
     , boidColor : Color.Color
     , backgroundColor : Maybe Color.Color
     }
 
 
+{-| Default configuration optimized for 5,000 boids.
+-}
 defaultConfig : Config
 defaultConfig =
     { width = 400
     , height = 400
-    , numBoids = 100
+    , numBoids = 5000
     , visualRange = 40
     , minDistance = 20
     , cohesionFactor = 0.005
@@ -53,68 +59,31 @@ defaultConfig =
 
 
 
--- VECTOR --
-
-
-type alias Vector =
-    { x : Float, y : Float }
-
-
-add : Vector -> Vector -> Vector
-add v1 v2 =
-    { x = v1.x + v2.x, y = v1.y + v2.y }
-
-
-sub : Vector -> Vector -> Vector
-sub v1 v2 =
-    { x = v1.x - v2.x, y = v1.y - v2.y }
-
-
-mul : Float -> Vector -> Vector
-mul s v =
-    { x = v.x * s, y = v.y * s }
-
-
-distSq : Vector -> Vector -> Float
-distSq v1 v2 =
-    (v1.x - v2.x) ^ 2 + (v1.y - v2.y) ^ 2
-
-
-mag : Vector -> Float
-mag v =
-    sqrt (v.x ^ 2 + v.y ^ 2)
-
-
-limit : Float -> Vector -> Vector
-limit max v =
-    let
-        m =
-            mag v
-    in
-    if m > max then
-        mul (max / m) v
-
-    else
-        v
-
-
-
 -- MODEL --
 
 
+{-| Represents a single boid in the simulation.
+-}
 type alias Boid =
-    { position : Vector
-    , velocity : Vector
+    { position : Vec2
+    , velocity : Vec2
     }
 
 
+{-| The simulation model.
+-}
 type alias Model =
     { boids : List Boid
+
+    -- A spatial hash grid used to speed up neighbor lookups.
+    -- The boids are grouped into cells based on their position.
     , grid : Dict ( Int, Int ) (List Boid)
     , config : Config
     }
 
 
+{-| Initialize the simulation with the given configuration.
+-}
 init : Config -> ( Model, Cmd Msg )
 init config =
     ( { boids = [], grid = Dict.empty, config = config }
@@ -125,8 +94,8 @@ init config =
 randomBoid : Config -> Random.Generator Boid
 randomBoid config =
     Random.map2 Boid
-        (Random.map2 Vector (Random.float 0 config.width) (Random.float 0 config.height))
-        (Random.map2 Vector (Random.float -2 2) (Random.float -2 2))
+        (Random.map2 vec2 (Random.float 0 config.width) (Random.float 0 config.height))
+        (Random.map2 vec2 (Random.float -2 2) (Random.float -2 2))
 
 
 
@@ -167,6 +136,9 @@ update msg model =
             ( { model | boids = newBoids, grid = buildGrid model.config newBoids }, Cmd.none )
 
 
+{-| Builds a spatial grid from the current list of boids.
+Cells are sized according to the `visualRange` to ensure all neighbors are in adjacent cells.
+-}
 buildGrid : Config -> List Boid -> Dict ( Int, Int ) (List Boid)
 buildGrid config boids =
     let
@@ -174,7 +146,7 @@ buildGrid config boids =
             config.visualRange
 
         toGridPos pos =
-            ( floor (pos.x / cellSize), floor (pos.y / cellSize) )
+            ( floor (Vec2.getX pos / cellSize), floor (Vec2.getY pos / cellSize) )
 
         insert boid acc =
             let
@@ -195,6 +167,8 @@ buildGrid config boids =
     List.foldl insert Dict.empty boids
 
 
+{-| Updates a single boid's position and velocity based on its neighbors and world boundaries.
+-}
 updateBoid : Config -> Float -> Dict ( Int, Int ) (List Boid) -> Boid -> Boid
 updateBoid config dt grid boid =
     let
@@ -202,10 +176,10 @@ updateBoid config dt grid boid =
             config.visualRange
 
         gridX =
-            floor (boid.position.x / cellSize)
+            floor (Vec2.getX boid.position / cellSize)
 
         gridY =
-            floor (boid.position.y / cellSize)
+            floor (Vec2.getY boid.position / cellSize)
 
         visualRangeSq =
             config.visualRange * config.visualRange
@@ -214,53 +188,48 @@ updateBoid config dt grid boid =
             config.minDistance * config.minDistance
 
         accumulateNeighbors other acc =
-            if other == boid then
-                acc
-
-            else
+            let
+                distanceSq =
+                    Vec2.distanceSquared boid.position other.position
+            in
+            if other /= boid && distanceSq < visualRangeSq then
                 let
-                    distanceSq =
-                        distSq boid.position other.position
+                    newAcc =
+                        { acc
+                            | count = acc.count + 1
+                            , sumPos = Vec2.add acc.sumPos other.position
+                            , sumVel = Vec2.add acc.sumVel other.velocity
+                        }
                 in
-                if distanceSq < visualRangeSq then
-                    let
-                        newAcc =
-                            { acc
-                                | count = acc.count + 1
-                                , sumPos = add acc.sumPos other.position
-                                , sumVel = add acc.sumVel other.velocity
-                            }
-                    in
-                    if distanceSq < minDistanceSq then
-                        { newAcc | sumSep = add newAcc.sumSep (sub boid.position other.position) }
-
-                    else
-                        newAcc
+                if distanceSq < minDistanceSq then
+                    { newAcc | sumSep = Vec2.add newAcc.sumSep (Vec2.sub boid.position other.position) }
 
                 else
-                    acc
+                    newAcc
 
-        initialAcc =
-            { count = 0, sumPos = { x = 0, y = 0 }, sumVel = { x = 0, y = 0 }, sumSep = { x = 0, y = 0 } }
+            else
+                acc
 
-        checkCell ( dx, dy ) acc =
-            case Dict.get ( gridX + dx, gridY + dy ) grid of
-                Just bs ->
-                    List.foldl accumulateNeighbors acc bs
-
-                Nothing ->
-                    acc
-
+        -- Check the boid's current cell and all 8 adjacent cells in the spatial grid.
         neighborData =
-            List.foldl checkCell
-                initialAcc
-                [ ( -1, -1 ), ( -1, 0 ), ( -1, 1 ), ( 0, -1 ), ( 0, 0 ), ( 0, 1 ), ( 1, -1 ), ( 1, 0 ), ( 1, 1 ) ]
+            [ ( -1, -1 ), ( -1, 0 ), ( -1, 1 ), ( 0, -1 ), ( 0, 0 ), ( 0, 1 ), ( 1, -1 ), ( 1, 0 ), ( 1, 1 ) ]
+                |> List.foldl
+                    (\( dx, dy ) acc ->
+                        case Dict.get ( gridX + dx, gridY + dy ) grid of
+                            Just bs ->
+                                List.foldl accumulateNeighbors acc bs
+
+                            Nothing ->
+                                acc
+                    )
+                    { count = 0, sumPos = vec2 0 0, sumVel = vec2 0 0, sumSep = vec2 0 0 }
 
         steering =
             if neighborData.count == 0 then
+                -- No neighbors? Just apply separation if we are too close to something (edge case)
                 neighborData.sumSep
-                    |> mul config.separationFactor
-                    |> limit config.maxForce
+                    |> Vec2.scale config.separationFactor
+                    |> limitVec2 config.maxForce
 
             else
                 let
@@ -268,89 +237,118 @@ updateBoid config dt grid boid =
                         1 / toFloat neighborData.count
 
                     vCohesion =
+                        -- Cohesion: Steer toward the average position (center of mass) of local neighbors.
                         neighborData.sumPos
-                            |> mul invCount
-                            |> sub boid.position
-                            |> mul config.cohesionFactor
+                            |> Vec2.scale invCount
+                            |> Vec2.sub boid.position
+                            |> Vec2.scale config.cohesionFactor
 
                     vAlignment =
+                        -- Alignment: Steer towards the average velocity of local neighbors.
                         neighborData.sumVel
-                            |> mul invCount
-                            |> sub boid.velocity
-                            |> mul config.alignmentFactor
+                            |> Vec2.scale invCount
+                            |> Vec2.sub boid.velocity
+                            |> Vec2.scale config.alignmentFactor
 
                     vSeparation =
+                        -- Separation: Steer to avoid crowding local neighbors.
                         neighborData.sumSep
-                            |> mul config.separationFactor
+                            |> Vec2.scale config.separationFactor
                 in
                 vCohesion
-                    |> add vAlignment
-                    |> add vSeparation
-                    |> limit config.maxForce
+                    |> Vec2.add vAlignment
+                    |> Vec2.add vSeparation
+                    |> limitVec2 config.maxForce
 
         newVelocity =
             boid.velocity
-                |> add (mul dt steering)
+                |> Vec2.add (Vec2.scale dt steering)
                 |> limitSpeed config
 
         newPosition =
             boid.position
-                |> add (mul dt newVelocity)
+                |> Vec2.add (Vec2.scale dt newVelocity)
                 |> wrap config
     in
     { position = newPosition, velocity = newVelocity }
 
 
-limitSpeed : Config -> Vector -> Vector
-limitSpeed config v =
+{-| Constraints a vector to a maximum length.
+-}
+limitVec2 : Float -> Vec2 -> Vec2
+limitVec2 max v =
     let
-        speed =
-            mag v
+        m =
+            Vec2.length v
     in
-    if speed > config.maxSpeed then
-        mul (config.maxSpeed / speed) v
-
-    else if speed < config.minSpeed then
-        mul (config.minSpeed / speed) v
+    if m > max then
+        Vec2.scale (max / m) v
 
     else
         v
 
 
-wrap : Config -> Vector -> Vector
+{-| Ensures a boid's speed stays within the configured min and max bounds.
+-}
+limitSpeed : Config -> Vec2 -> Vec2
+limitSpeed config v =
+    let
+        speed =
+            Vec2.length v
+    in
+    if speed > config.maxSpeed then
+        Vec2.scale (config.maxSpeed / speed) v
+
+    else if speed < config.minSpeed then
+        Vec2.scale (config.minSpeed / speed) v
+
+    else
+        v
+
+
+{-| Wraps the boid around the edges of the screen.
+-}
+wrap : Config -> Vec2 -> Vec2
 wrap config v =
-    { x =
-        if v.x < 0 then
-            v.x + config.width
+    let
+        vx =
+            Vec2.getX v
 
-        else if v.x > config.width then
-            v.x - config.width
+        vy =
+            Vec2.getY v
 
-        else
-            v.x
-    , y =
-        if v.y < 0 then
-            v.y + config.height
+        newX =
+            if vx < 0 then
+                vx + config.width
 
-        else if v.y > config.height then
-            v.y - config.height
+            else if vx > config.width then
+                vx - config.width
 
-        else
-            v.y
-    }
+            else
+                vx
+
+        newY =
+            if vy < 0 then
+                vy + config.height
+
+            else if vy > config.height then
+                vy - config.height
+
+            else
+                vy
+    in
+    vec2 newX newY
 
 
 
 -- VIEW --
 
 
+{-| Renders the boid simulation.
+-}
 view : Model -> Html Msg
 view model =
-    Canvas.toHtml ( round model.config.width, round model.config.height )
-        []
-        [ clearCanvas model.config
-        , drawBoids model.config model.boids
-        ]
+    renderWebGL [] model
 
 
 {-| An alternative view that allows for pointer events to pass through.
@@ -358,72 +356,167 @@ Useful for background animations.
 -}
 viewOverlay : Model -> Html Msg
 viewOverlay model =
-    Canvas.toHtml ( round model.config.width, round model.config.height )
-        [ Attr.style "pointer-events" "none" ]
-        [ clearCanvas model.config
-        , drawBoids model.config model.boids
+    renderWebGL [ Attr.style "pointer-events" "none" ] model
+
+
+renderWebGL : List (Html.Attribute Msg) -> Model -> Html Msg
+renderWebGL additionalAttrs model =
+    WebGL.toHtml
+        ([ Attr.width (round model.config.width)
+         , Attr.height (round model.config.height)
+         , Attr.style "display" "block"
+         ]
+            ++ additionalAttrs
+        )
+        (backgroundEntities model ++ [ boidsEntity model ])
+
+
+backgroundEntities : Model -> List Entity
+backgroundEntities model =
+    case model.config.backgroundColor of
+        Just color ->
+            let
+                rgb =
+                    Color.toRgba color
+            in
+            [ WebGL.entity
+                backgroundVertexShader
+                fragmentShader
+                backgroundMesh
+                { u_projection = projectionMatrix model.config
+                , u_color = vec3 rgb.red rgb.green rgb.blue
+                }
+            ]
+
+        Nothing ->
+            []
+
+
+{-| A full-screen mesh used for the background color.
+-}
+backgroundMesh : Mesh { a_pos : Vec2 }
+backgroundMesh =
+    WebGL.triangleStrip
+        [ { a_pos = vec2 -1 -1 }
+        , { a_pos = vec2 1 -1 }
+        , { a_pos = vec2 -1 1 }
+        , { a_pos = vec2 1 1 }
         ]
 
 
-clearCanvas : Config -> Renderable
-clearCanvas config =
-    case config.backgroundColor of
-        Just color ->
-            shapes [ fill color ] [ rect ( 0, 0 ) config.width config.height ]
+backgroundVertexShader : Shader { a_pos : Vec2 } Uniforms { v_color : Vec3 }
+backgroundVertexShader =
+    [glsl|
+        attribute vec2 a_pos;
+        uniform mat4 u_projection;
+        uniform vec3 u_color;
+        varying vec3 v_color;
 
-        Nothing ->
-            clear ( 0, 0 ) config.width config.height
+        void main() {
+            gl_Position = vec4(a_pos, 0.0, 1.0);
+            v_color = u_color;
+        }
+    |]
 
 
-drawBoids : Config -> List Boid -> Renderable
-drawBoids config boids =
+{-| Attributes for each boid vertex.
+To optimize rendering, we pass the boid's position and velocity as attributes
+so the GPU can handle the transformation (rotation/translation) in the vertex shader.
+-}
+type alias Vertex =
+    { a_pos : Vec2 -- Vertex position relative to boid center
+    , a_boidPos : Vec2 -- World position of the boid
+    , a_boidVel : Vec2 -- Velocity of the boid (used for rotation)
+    }
+
+
+type alias Uniforms =
+    { u_projection : Mat4
+    , u_color : Vec3
+    }
+
+
+{-| The WebGL entity representing all boids.
+-}
+boidsEntity : Model -> Entity
+boidsEntity model =
     let
-        drawSingleBoid boid =
-            let
-                angle =
-                    atan2 boid.velocity.y boid.velocity.x
+        color =
+            Color.toRgba model.config.boidColor
 
-                cosA =
-                    cos angle
-
-                sinA =
-                    sin angle
-
-                {- We manually calculate the rotation and translation for each boid
-                   to minimize the number of Renderable objects. Using `transform`
-                   for each of 10,000 boids is significantly slower.
-                -}
-                transformX x y =
-                    boid.position.x + (x * cosA - y * sinA)
-
-                transformY x y =
-                    boid.position.y + (x * sinA + y * cosA)
-
-                p1x =
-                    transformX -5 -3
-
-                p1y =
-                    transformY -5 -3
-
-                p2x =
-                    transformX 7 0
-
-                p2y =
-                    transformY 7 0
-
-                p3x =
-                    transformX -5 3
-
-                p3y =
-                    transformY -5 3
-            in
-            path ( p1x, p1y )
-                [ lineTo ( p2x, p2y )
-                , lineTo ( p3x, p3y )
-                , lineTo ( p1x, p1y )
-                ]
+        uniforms =
+            { u_projection = projectionMatrix model.config
+            , u_color = vec3 color.red color.green color.blue
+            }
     in
-    shapes [ fill config.boidColor ] (List.map drawSingleBoid boids)
+    WebGL.entity
+        vertexShader
+        fragmentShader
+        (boidsMesh model.boids)
+        uniforms
+
+
+{-| Creates an orthographic projection matrix for 2D rendering.
+-}
+projectionMatrix : Config -> Mat4
+projectionMatrix config =
+    Mat4.makeOrtho 0 config.width config.height 0 -1 1
+
+
+{-| Generates a single mesh containing all boids as individual triangles.
+-}
+boidsMesh : List Boid -> Mesh Vertex
+boidsMesh boids =
+    let
+        toVertices boid =
+            [ ( Vertex (vec2 7 0) boid.position boid.velocity
+              , Vertex (vec2 -5 -3) boid.position boid.velocity
+              , Vertex (vec2 -5 3) boid.position boid.velocity
+              )
+            ]
+    in
+    boids
+        |> List.concatMap toVertices
+        |> WebGL.triangles
+
+
+vertexShader : Shader Vertex Uniforms { v_color : Vec3 }
+vertexShader =
+    [glsl|
+        attribute vec2 a_pos;
+        attribute vec2 a_boidPos;
+        attribute vec2 a_boidVel;
+        uniform mat4 u_projection;
+        uniform vec3 u_color;
+        varying vec3 v_color;
+
+        void main() {
+            float angle = atan(a_boidVel.y, a_boidVel.x);
+            float cosA = cos(angle);
+            float sinA = sin(angle);
+            
+            // Rotation matrix
+            mat2 rot = mat2(cosA, sinA, -sinA, cosA);
+            
+            vec2 rotatedPos = rot * a_pos;
+            vec2 finalPos = rotatedPos + a_boidPos;
+            
+            gl_Position = u_projection * vec4(finalPos, 0.0, 1.0);
+            v_color = u_color;
+        }
+    |]
+
+
+fragmentShader : Shader {} Uniforms { v_color : Vec3 }
+fragmentShader =
+    [glsl|
+        precision mediump float;
+        varying vec3 v_color;
+
+        void main() {
+            gl_FragColor = vec4(v_color, 1.0);
+        }
+    |]
 
 
 
