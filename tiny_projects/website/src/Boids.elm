@@ -24,6 +24,7 @@ type alias Config =
     { width : Float
     , height : Float
     , numBoids : Int
+    , wrapPadding : Float
 
     -- Simulation Parameters
     , visualRange : Float -- How far each boid can "see"
@@ -35,6 +36,8 @@ type alias Config =
     , minSpeed : Float
     , maxForce : Float -- Maximum steering force applied in one frame
     , visualFieldOfView : Float -- The angle of the boid's visual cone in radians
+    , centerRepelRadius : Float -- Radius around the viewport center that repels boids
+    , centerRepelFactor : Float -- Strength of the center repulsion force
     , boidColor : Color.Color
     , backgroundColor : Maybe Color.Color
     }
@@ -47,6 +50,7 @@ defaultConfig =
     { width = 400
     , height = 400
     , numBoids = 500
+    , wrapPadding = 40
     , visualRange = 50
     , minDistance = 30
     , cohesionFactor = 0.001
@@ -56,6 +60,8 @@ defaultConfig =
     , minSpeed = 1
     , maxForce = 0.15
     , visualFieldOfView = pi
+    , centerRepelRadius = 80
+    , centerRepelFactor = 0.2
     , boidColor = Color.black
     , backgroundColor = Just Color.white
     }
@@ -178,8 +184,43 @@ buildGrid config boids =
         cellSize =
             config.visualRange
 
+        cellsX =
+            max 1 (ceiling (config.width / cellSize))
+
+        cellsY =
+            max 1 (ceiling (config.height / cellSize))
+
+        wrapIndex : Int -> Int -> Int
+        wrapIndex size idx =
+            modBy size (idx + size)
+
+        wrapCoord : Float -> Float -> Float
+        wrapCoord size coord =
+            let
+                padding =
+                    config.wrapPadding
+
+                period =
+                    size + (2 * padding)
+            in
+            if coord < -padding then
+                coord + period
+
+            else if coord > size + padding then
+                coord - period
+
+            else
+                coord
+
         toGridPos pos =
-            ( floor (Vec2.getX pos / cellSize), floor (Vec2.getY pos / cellSize) )
+            let
+                x =
+                    wrapCoord config.width (Vec2.getX pos)
+
+                y =
+                    wrapCoord config.height (Vec2.getY pos)
+            in
+            ( wrapIndex cellsX (floor (x / cellSize)), wrapIndex cellsY (floor (y / cellSize)) )
 
         insert boid acc =
             let
@@ -219,16 +260,19 @@ updateBoid config dt grid boid =
             modBy size (idx + size)
 
         gridX =
-            floor (Vec2.getX boid.position / cellSize)
+            modBy cellsX (floor (Vec2.getX boid.position / cellSize) + cellsX)
 
         gridY =
-            floor (Vec2.getY boid.position / cellSize)
+            modBy cellsY (floor (Vec2.getY boid.position / cellSize) + cellsY)
 
         visualRangeSq =
             config.visualRange * config.visualRange
 
         minDistanceSq =
             config.minDistance * config.minDistance
+
+        centerRepelRadiusSq =
+            config.centerRepelRadius * config.centerRepelRadius
 
         eps =
             0.0001
@@ -323,49 +367,89 @@ updateBoid config dt grid boid =
                     { count = 0, sepCount = 0, sumPos = vec2 0 0, sumVel = vec2 0 0, sumSep = vec2 0 0 }
 
         steering =
-            if neighborData.count == 0 then
-                -- No neighbors? Just apply separation if we are too close to something (edge case)
-                if neighborData.sepCount == 0 then
-                    vec2 0 0
-
-                else
-                    neighborData.sumSep
-                        |> Vec2.scale config.separationFactor
-                        |> limitVec2 config.maxForce
-
-            else
-                let
-                    invCount =
-                        1 / toFloat neighborData.count
-
-                    vCohesion =
-                        -- Cohesion: Steer toward the average position (center of mass) of local neighbors.
-                        neighborData.sumPos
-                            |> Vec2.scale invCount
-                            |> (\center -> Vec2.sub center boid.position)
-                            |> Vec2.scale config.cohesionFactor
-
-                    vAlignment =
-                        -- Alignment: Steer towards the average velocity of local neighbors.
-                        neighborData.sumVel
-                            |> Vec2.scale invCount
-                            |> (\avgVelocity -> Vec2.sub avgVelocity boid.velocity)
-                            |> Vec2.scale config.alignmentFactor
-
-                    vSeparation =
-                        -- Separation: Steer to avoid crowding local neighbors.
+            let
+                vFlock =
+                    if neighborData.count == 0 then
+                        -- No neighbors? Just apply separation if we are too close to something (edge case)
                         if neighborData.sepCount == 0 then
                             vec2 0 0
 
                         else
                             neighborData.sumSep
-                                |> Vec2.scale (1 / toFloat neighborData.sepCount)
                                 |> Vec2.scale config.separationFactor
-                in
-                vCohesion
-                    |> Vec2.add vAlignment
-                    |> Vec2.add vSeparation
-                    |> limitVec2 config.maxForce
+
+                    else
+                        let
+                            invCount =
+                                1 / toFloat neighborData.count
+
+                            vCohesion =
+                                -- Cohesion: Steer toward the average position (center of mass) of local neighbors.
+                                neighborData.sumPos
+                                    |> Vec2.scale invCount
+                                    |> (\center -> Vec2.sub center boid.position)
+                                    |> Vec2.scale config.cohesionFactor
+
+                            vAlignment =
+                                -- Alignment: Steer towards the average velocity of local neighbors.
+                                neighborData.sumVel
+                                    |> Vec2.scale invCount
+                                    |> (\avgVelocity -> Vec2.sub avgVelocity boid.velocity)
+                                    |> Vec2.scale config.alignmentFactor
+
+                            vSeparation =
+                                -- Separation: Steer to avoid crowding local neighbors.
+                                if neighborData.sepCount == 0 then
+                                    vec2 0 0
+
+                                else
+                                    neighborData.sumSep
+                                        |> Vec2.scale (1 / toFloat neighborData.sepCount)
+                                        |> Vec2.scale config.separationFactor
+                        in
+                        vCohesion
+                            |> Vec2.add vAlignment
+                            |> Vec2.add vSeparation
+
+                vCenterRepel =
+                    let
+                        centerX =
+                            config.width / 2
+
+                        centerY =
+                            config.height / 2
+
+                        dxFromCenter =
+                            wrapDelta config.width (Vec2.getX boid.position - centerX)
+
+                        dyFromCenter =
+                            wrapDelta config.height (Vec2.getY boid.position - centerY)
+
+                        distanceSq =
+                            dxFromCenter * dxFromCenter + dyFromCenter * dyFromCenter
+                    in
+                    if distanceSq < centerRepelRadiusSq then
+                        let
+                            distance =
+                                sqrt (max distanceSq eps)
+
+                            nx =
+                                dxFromCenter / distance
+
+                            ny =
+                                dyFromCenter / distance
+
+                            falloff =
+                                1 - (distance / config.centerRepelRadius)
+                        in
+                        Vec2.scale (config.centerRepelFactor * falloff) (vec2 nx ny)
+
+                    else
+                        vec2 0 0
+            in
+            vFlock
+                |> Vec2.add vCenterRepel
+                |> limitVec2 config.maxForce
 
         newVelocity =
             boid.velocity
@@ -424,22 +508,31 @@ wrap config v =
         vy =
             Vec2.getY v
 
-        newX =
-            if vx < 0 then
-                vx + config.width
+        padding =
+            config.wrapPadding
 
-            else if vx > config.width then
-                vx - config.width
+        periodX =
+            config.width + (2 * padding)
+
+        periodY =
+            config.height + (2 * padding)
+
+        newX =
+            if vx < -padding then
+                vx + periodX
+
+            else if vx > config.width + padding then
+                vx - periodX
 
             else
                 vx
 
         newY =
-            if vy < 0 then
-                vy + config.height
+            if vy < -padding then
+                vy + periodY
 
-            else if vy > config.height then
-                vy - config.height
+            else if vy > config.height + padding then
+                vy - periodY
 
             else
                 vy
@@ -482,6 +575,8 @@ viewSettings config =
         , slider "Min Speed" config.minSpeed 0 10 0.1 (\v -> { config | minSpeed = v })
         , slider "Max Force" config.maxForce 0 0.5 0.01 (\v -> { config | maxForce = v })
         , slider "Field of View" (config.visualFieldOfView * 180 / pi) 0 360 1 (\v -> { config | visualFieldOfView = v * pi / 180 })
+        , slider "Center Repel Radius" config.centerRepelRadius 0 300 1 (\v -> { config | centerRepelRadius = v })
+        , slider "Center Repel" config.centerRepelFactor 0 1 0.01 (\v -> { config | centerRepelFactor = v })
         ]
 
 
