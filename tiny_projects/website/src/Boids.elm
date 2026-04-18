@@ -40,22 +40,22 @@ type alias Config =
     }
 
 
-{-| Default configuration optimized for 5,000 boids.
+{-| Default configuration tuned for coherent flocking at typical interactive counts.
 -}
 defaultConfig : Config
 defaultConfig =
     { width = 400
     , height = 400
-    , numBoids = 1000
-    , visualRange = 40
-    , minDistance = 20
-    , cohesionFactor = 0.005
-    , alignmentFactor = 0.05
-    , separationFactor = 0.05
-    , maxSpeed = 3
-    , minSpeed = 1.5
-    , maxForce = 0.1
-    , visualFieldOfView = 2 * pi * 0.75 -- 270 degrees
+    , numBoids = 500
+    , visualRange = 50
+    , minDistance = 30
+    , cohesionFactor = 0.001
+    , alignmentFactor = 0.04
+    , separationFactor = 0.3
+    , maxSpeed = 2
+    , minSpeed = 1
+    , maxForce = 0.15
+    , visualFieldOfView = pi
     , boidColor = Color.black
     , backgroundColor = Just Color.white
     }
@@ -96,16 +96,20 @@ init config =
 
 randomBoid : Config -> Int -> Random.Generator Boid
 randomBoid config _ =
-    let
-        startPos =
-            vec2 (config.width / 2) (config.height / 2)
-
-        velGen =
-            Random.map2 (\mag angle -> vec2 (mag * cos angle) (mag * sin angle))
-                (Random.float config.minSpeed config.maxSpeed)
-                (Random.float 0 (2 * pi))
-    in
-    Random.map (Boid startPos) velGen
+    Random.map4
+        (\x y speed angleOffset ->
+            let
+                heading =
+                    (-pi / 4) + angleOffset
+            in
+            Boid
+                (vec2 x y)
+                (vec2 (speed * cos heading) (speed * sin heading))
+        )
+        (Random.float 0 config.width)
+        (Random.float 0 config.height)
+        (Random.float config.minSpeed config.maxSpeed)
+        (Random.float (-pi / 6) (pi / 6))
 
 
 combineGenerators : List (Random.Generator a) -> Random.Generator (List a)
@@ -204,6 +208,16 @@ updateBoid config dt grid boid =
         cellSize =
             config.visualRange
 
+        cellsX =
+            max 1 (ceiling (config.width / cellSize))
+
+        cellsY =
+            max 1 (ceiling (config.height / cellSize))
+
+        wrapIndex : Int -> Int -> Int
+        wrapIndex size idx =
+            modBy size (idx + size)
+
         gridX =
             floor (Vec2.getX boid.position / cellSize)
 
@@ -216,61 +230,82 @@ updateBoid config dt grid boid =
         minDistanceSq =
             config.minDistance * config.minDistance
 
+        eps =
+            0.0001
+
+        wrapDelta : Float -> Float -> Float
+        wrapDelta size delta =
+            if delta > size / 2 then
+                delta - size
+
+            else if delta < -(size / 2) then
+                delta + size
+
+            else
+                delta
+
         neighborData =
             let
-                boidAngle =
-                    atan2 (Vec2.getY boid.velocity) (Vec2.getX boid.velocity)
-
-                halfFOV =
-                    config.visualFieldOfView / 2
-
-                isInCone other =
-                    let
-                        toOther =
-                            Vec2.sub other.position boid.position
-
-                        angleToOther =
-                            atan2 (Vec2.getY toOther) (Vec2.getX toOther)
-
-                        angleDiff =
-                            angleToOther - boidAngle
-
-                        -- Normalize angle difference to [-pi, pi]
-                        normalizedDiff =
-                            if angleDiff > pi then
-                                angleDiff - 2 * pi
-
-                            else if angleDiff < -pi then
-                                angleDiff + 2 * pi
-
-                            else
-                                angleDiff
-                    in
-                    abs normalizedDiff <= halfFOV
-
                 accumulateNeighbors other acc =
                     let
+                        rawDx =
+                            Vec2.getX other.position - Vec2.getX boid.position
+
+                        rawDy =
+                            Vec2.getY other.position - Vec2.getY boid.position
+
+                        dx =
+                            wrapDelta config.width rawDx
+
+                        dy =
+                            wrapDelta config.height rawDy
+
+                        toOther =
+                            vec2 dx dy
+
                         distanceSq =
-                            Vec2.distanceSquared boid.position other.position
+                            dx * dx + dy * dy
                     in
                     if other /= boid && distanceSq < visualRangeSq then
-                        if distanceSq < minDistanceSq || isInCone other then
-                            let
-                                newAcc =
-                                    { acc
-                                        | count = acc.count + 1
-                                        , sumPos = Vec2.add acc.sumPos other.position
-                                        , sumVel = Vec2.add acc.sumVel other.velocity
-                                    }
-                            in
-                            if distanceSq < minDistanceSq then
-                                { newAcc | sumSep = Vec2.add newAcc.sumSep (Vec2.sub boid.position other.position) }
+                        { acc
+                            | count =
+                                if distanceSq < minDistanceSq then
+                                    acc.count
 
-                            else
-                                newAcc
+                                else
+                                    acc.count + 1
+                            , sumPos =
+                                if distanceSq < minDistanceSq then
+                                    acc.sumPos
 
-                        else
-                            acc
+                                else
+                                    Vec2.add acc.sumPos (Vec2.add boid.position toOther)
+                            , sumVel =
+                                if distanceSq < minDistanceSq then
+                                    acc.sumVel
+
+                                else
+                                    Vec2.add acc.sumVel other.velocity
+                            , sepCount =
+                                if distanceSq < minDistanceSq then
+                                    acc.sepCount + 1
+
+                                else
+                                    acc.sepCount
+                            , sumSep =
+                                if distanceSq < minDistanceSq then
+                                    let
+                                        distance =
+                                            sqrt (max distanceSq eps)
+
+                                        weight =
+                                            1 / distance
+                                    in
+                                    Vec2.add acc.sumSep (Vec2.scale weight (vec2 -dx -dy))
+
+                                else
+                                    acc.sumSep
+                        }
 
                     else
                         acc
@@ -278,21 +313,25 @@ updateBoid config dt grid boid =
             [ ( -1, -1 ), ( -1, 0 ), ( -1, 1 ), ( 0, -1 ), ( 0, 0 ), ( 0, 1 ), ( 1, -1 ), ( 1, 0 ), ( 1, 1 ) ]
                 |> List.foldl
                     (\( dx, dy ) acc ->
-                        case Dict.get ( gridX + dx, gridY + dy ) grid of
+                        case Dict.get ( wrapIndex cellsX (gridX + dx), wrapIndex cellsY (gridY + dy) ) grid of
                             Just bs ->
                                 List.foldl accumulateNeighbors acc bs
 
                             Nothing ->
                                 acc
                     )
-                    { count = 0, sumPos = vec2 0 0, sumVel = vec2 0 0, sumSep = vec2 0 0 }
+                    { count = 0, sepCount = 0, sumPos = vec2 0 0, sumVel = vec2 0 0, sumSep = vec2 0 0 }
 
         steering =
             if neighborData.count == 0 then
                 -- No neighbors? Just apply separation if we are too close to something (edge case)
-                neighborData.sumSep
-                    |> Vec2.scale config.separationFactor
-                    |> limitVec2 config.maxForce
+                if neighborData.sepCount == 0 then
+                    vec2 0 0
+
+                else
+                    neighborData.sumSep
+                        |> Vec2.scale config.separationFactor
+                        |> limitVec2 config.maxForce
 
             else
                 let
@@ -303,20 +342,25 @@ updateBoid config dt grid boid =
                         -- Cohesion: Steer toward the average position (center of mass) of local neighbors.
                         neighborData.sumPos
                             |> Vec2.scale invCount
-                            |> Vec2.sub boid.position
+                            |> (\center -> Vec2.sub center boid.position)
                             |> Vec2.scale config.cohesionFactor
 
                     vAlignment =
                         -- Alignment: Steer towards the average velocity of local neighbors.
                         neighborData.sumVel
                             |> Vec2.scale invCount
-                            |> Vec2.sub boid.velocity
+                            |> (\avgVelocity -> Vec2.sub avgVelocity boid.velocity)
                             |> Vec2.scale config.alignmentFactor
 
                     vSeparation =
                         -- Separation: Steer to avoid crowding local neighbors.
-                        neighborData.sumSep
-                            |> Vec2.scale config.separationFactor
+                        if neighborData.sepCount == 0 then
+                            vec2 0 0
+
+                        else
+                            neighborData.sumSep
+                                |> Vec2.scale (1 / toFloat neighborData.sepCount)
+                                |> Vec2.scale config.separationFactor
                 in
                 vCohesion
                     |> Vec2.add vAlignment

@@ -73,8 +73,7 @@ init flags =
             in
             Boids.init
                 { defaultConfig
-                    | numBoids = 250
-                    , boidColor = Theme.theme.rose
+                    | boidColor = Theme.theme.rose
                     , backgroundColor = Nothing
                     , width = drawingSettings.width
                     , height = drawingSettings.height
