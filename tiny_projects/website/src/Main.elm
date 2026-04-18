@@ -7,6 +7,7 @@ import Color
 import FeatherIcons as Icons
 import Html exposing (Html)
 import Html.Attributes as Attr
+import Html.Events
 import Random
 import Theme
 import TiledLines
@@ -45,6 +46,7 @@ type alias Model =
     { drawingModel : TiledLines.Model
     , boidsModel : Boids.Model
     , scrollBarWidth : Float
+    , showSettings : Bool
     }
 
 
@@ -71,7 +73,7 @@ init flags =
             in
             Boids.init
                 { defaultConfig
-                    | numBoids = 1000
+                    | numBoids = 250
                     , boidColor = Theme.theme.rose
                     , backgroundColor = Nothing
                     , width = drawingSettings.width
@@ -83,6 +85,7 @@ init flags =
             { drawingModel = { settings = drawingSettings, drawingDirections = Nothing }
             , boidsModel = initialBoidsModel
             , scrollBarWidth = flags.scrollBarWidth
+            , showSettings = False
             }
     in
     ( model
@@ -101,6 +104,19 @@ view : Model -> Html Msg
 view model =
     Html.div []
         [ splashScreen model
+        , if model.showSettings then
+            Html.div [ Attr.class "settings-overlay" ]
+                [ Html.div [ Attr.class "settings-menu" ]
+                    [ Html.div [ Attr.class "settings-header" ]
+                        [ Html.h2 [] [ Html.text "Boid Settings" ]
+                        , Html.button [ Attr.class "close-button", Html.Events.onClick ToggleSettings ] [ Icons.x |> Icons.toHtml [] ]
+                        ]
+                    , Html.map BoidsMsg (Boids.viewSettings model.boidsModel.config)
+                    ]
+                ]
+
+          else
+            Html.text ""
         , Html.br [] []
         , Html.br [] []
         , about
@@ -144,6 +160,12 @@ splashScreen model =
                     ]
                 ]
             ]
+        , if not model.showSettings then
+            Html.button [ Attr.class "settings-toggle", Html.Events.onClick ToggleSettings ]
+                [ Icons.settings |> Icons.toHtml [] ]
+
+          else
+            Html.text ""
         ]
 
 
@@ -287,11 +309,15 @@ type Msg
     = Ready (List Int)
     | WindowResized { width : Float, height : Float }
     | BoidsMsg Boids.Msg
+    | ToggleSettings
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ToggleSettings ->
+            ( { model | showSettings = not model.showSettings }, Cmd.none )
+
         Ready directions ->
             let
                 old =

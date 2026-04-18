@@ -140,6 +140,7 @@ probably will need to do a media query to change the style based on size of the 
 	display: flex;
 	justify-content: center;
 	align-content: center;
+	position: relative;
 }
 
 .splash-screen-background {
@@ -237,6 +238,114 @@ skill-tree-section:last-child {
 
 .skill-tree a {
 	align-content: center;
+}
+/*************************************************
+* Boids Settings
+**************************************************/
+
+.settings-toggle {
+	position: absolute;
+	bottom: 2rem;
+	right: 2rem;
+	z-index: 100;
+	background-color: var(--background-secondary);
+	border: 2px solid var(--border-primary);
+	color: var(--text-accent);
+	padding: 0.5rem;
+	border-radius: 50%;
+	cursor: pointer;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: transform 0.2s;
+}
+
+.settings-toggle:hover {
+	transform: scale(1.1);
+}
+
+.settings-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background-color: rgba(0, 0, 0, 0.5);
+	z-index: 200;
+	display: flex;
+	justify-content: flex-end;
+}
+
+.settings-menu {
+	background-color: var(--background-secondary);
+	width: 350px;
+	height: 100%;
+	padding: 1.5rem;
+	box-shadow: -4px 0 10px rgba(0, 0, 0, 0.2);
+	overflow-y: auto;
+	animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+	from { transform: translateX(100%); }
+	to { transform: translateX(0); }
+}
+
+.settings-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 2rem;
+	border-bottom: 1px solid var(--border-secondary);
+	padding-bottom: 0.5rem;
+}
+
+.settings-header h2 {
+	margin: 0;
+	font-size: 1.5rem;
+	color: var(--text-accent);
+}
+
+.close-button {
+	background: none;
+	border: none;
+	color: var(--text-normal);
+	cursor: pointer;
+	padding: 0.5rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.boids-settings {
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+}
+
+.setting-item {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.setting-item label {
+	font-size: 0.9rem;
+	color: var(--text-normal);
+	font-weight: bold;
+}
+
+.setting-item input[type="range"] {
+	width: 100%;
+	cursor: pointer;
+}
+
+.setting-value {
+	align-self: flex-end;
+	font-family: monospace;
+	font-size: 0.8rem;
+	color: var(--text-muted);
 }
 
 

@@ -6,6 +6,7 @@ import Color
 import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Attributes as Attr
+import Html.Events
 import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector2 as Vec2 exposing (Vec2, vec2)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
@@ -33,6 +34,7 @@ type alias Config =
     , maxSpeed : Float
     , minSpeed : Float
     , maxForce : Float -- Maximum steering force applied in one frame
+    , visualFieldOfView : Float -- The angle of the boid's visual cone in radians
     , boidColor : Color.Color
     , backgroundColor : Maybe Color.Color
     }
@@ -44,7 +46,7 @@ defaultConfig : Config
 defaultConfig =
     { width = 400
     , height = 400
-    , numBoids = 5000
+    , numBoids = 1000
     , visualRange = 40
     , minDistance = 20
     , cohesionFactor = 0.005
@@ -53,6 +55,7 @@ defaultConfig =
     , maxSpeed = 3
     , minSpeed = 1.5
     , maxForce = 0.1
+    , visualFieldOfView = 2 * pi * 0.75 -- 270 degrees
     , boidColor = Color.black
     , backgroundColor = Just Color.white
     }
@@ -87,15 +90,32 @@ type alias Model =
 init : Config -> ( Model, Cmd Msg )
 init config =
     ( { boids = [], grid = Dict.empty, config = config }
-    , Random.generate InitBoids (Random.list config.numBoids (randomBoid config))
+    , Random.generate InitBoids (List.range 0 (config.numBoids - 1) |> List.map (randomBoid config) |> combineGenerators)
     )
 
 
-randomBoid : Config -> Random.Generator Boid
-randomBoid config =
-    Random.map2 Boid
-        (Random.map2 vec2 (Random.float 0 config.width) (Random.float 0 config.height))
-        (Random.map2 vec2 (Random.float -2 2) (Random.float -2 2))
+randomBoid : Config -> Int -> Random.Generator Boid
+randomBoid config _ =
+    let
+        startPos =
+            vec2 (config.width / 2) (config.height / 2)
+
+        velGen =
+            Random.map2 (\mag angle -> vec2 (mag * cos angle) (mag * sin angle))
+                (Random.float config.minSpeed config.maxSpeed)
+                (Random.float 0 (2 * pi))
+    in
+    Random.map (Boid startPos) velGen
+
+
+combineGenerators : List (Random.Generator a) -> Random.Generator (List a)
+combineGenerators generators =
+    case generators of
+        [] ->
+            Random.constant []
+
+        g :: gs ->
+            Random.map2 (::) g (combineGenerators gs)
 
 
 
@@ -106,11 +126,20 @@ type Msg
     = OnFrame Float
     | InitBoids (List Boid)
     | Resize Float Float
+    | UpdateConfig Config
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        UpdateConfig config ->
+            if config.numBoids /= model.config.numBoids then
+                -- If number of boids changed, we need to re-initialize them
+                init config
+
+            else
+                ( { model | config = config, grid = buildGrid config model.boids }, Cmd.none )
+
         InitBoids boids ->
             ( { model | boids = boids, grid = buildGrid model.config boids }, Cmd.none )
 
@@ -187,31 +216,65 @@ updateBoid config dt grid boid =
         minDistanceSq =
             config.minDistance * config.minDistance
 
-        accumulateNeighbors other acc =
-            let
-                distanceSq =
-                    Vec2.distanceSquared boid.position other.position
-            in
-            if other /= boid && distanceSq < visualRangeSq then
-                let
-                    newAcc =
-                        { acc
-                            | count = acc.count + 1
-                            , sumPos = Vec2.add acc.sumPos other.position
-                            , sumVel = Vec2.add acc.sumVel other.velocity
-                        }
-                in
-                if distanceSq < minDistanceSq then
-                    { newAcc | sumSep = Vec2.add newAcc.sumSep (Vec2.sub boid.position other.position) }
-
-                else
-                    newAcc
-
-            else
-                acc
-
-        -- Check the boid's current cell and all 8 adjacent cells in the spatial grid.
         neighborData =
+            let
+                boidAngle =
+                    atan2 (Vec2.getY boid.velocity) (Vec2.getX boid.velocity)
+
+                halfFOV =
+                    config.visualFieldOfView / 2
+
+                isInCone other =
+                    let
+                        toOther =
+                            Vec2.sub other.position boid.position
+
+                        angleToOther =
+                            atan2 (Vec2.getY toOther) (Vec2.getX toOther)
+
+                        angleDiff =
+                            angleToOther - boidAngle
+
+                        -- Normalize angle difference to [-pi, pi]
+                        normalizedDiff =
+                            if angleDiff > pi then
+                                angleDiff - 2 * pi
+
+                            else if angleDiff < -pi then
+                                angleDiff + 2 * pi
+
+                            else
+                                angleDiff
+                    in
+                    abs normalizedDiff <= halfFOV
+
+                accumulateNeighbors other acc =
+                    let
+                        distanceSq =
+                            Vec2.distanceSquared boid.position other.position
+                    in
+                    if other /= boid && distanceSq < visualRangeSq then
+                        if distanceSq < minDistanceSq || isInCone other then
+                            let
+                                newAcc =
+                                    { acc
+                                        | count = acc.count + 1
+                                        , sumPos = Vec2.add acc.sumPos other.position
+                                        , sumVel = Vec2.add acc.sumVel other.velocity
+                                    }
+                            in
+                            if distanceSq < minDistanceSq then
+                                { newAcc | sumSep = Vec2.add newAcc.sumSep (Vec2.sub boid.position other.position) }
+
+                            else
+                                newAcc
+
+                        else
+                            acc
+
+                    else
+                        acc
+            in
             [ ( -1, -1 ), ( -1, 0 ), ( -1, 1 ), ( 0, -1 ), ( 0, 0 ), ( 0, 1 ), ( 1, -1 ), ( 1, 0 ), ( 1, 1 ) ]
                 |> List.foldl
                     (\( dx, dy ) acc ->
@@ -359,6 +422,42 @@ viewOverlay model =
     renderWebGL [ Attr.style "pointer-events" "none" ] model
 
 
+{-| Renders a settings menu for the boid simulation.
+-}
+viewSettings : Config -> Html Msg
+viewSettings config =
+    Html.div
+        [ Attr.class "boids-settings" ]
+        [ slider "Boids" (toFloat config.numBoids) 10 1000 1 (\v -> { config | numBoids = round v })
+        , slider "Visual Range" config.visualRange 0 200 1 (\v -> { config | visualRange = v })
+        , slider "Min Distance" config.minDistance 0 100 1 (\v -> { config | minDistance = v })
+        , slider "Cohesion" config.cohesionFactor 0 0.05 0.001 (\v -> { config | cohesionFactor = v })
+        , slider "Alignment" config.alignmentFactor 0 0.2 0.001 (\v -> { config | alignmentFactor = v })
+        , slider "Separation" config.separationFactor 0 0.2 0.001 (\v -> { config | separationFactor = v })
+        , slider "Max Speed" config.maxSpeed 0 10 0.1 (\v -> { config | maxSpeed = v })
+        , slider "Min Speed" config.minSpeed 0 10 0.1 (\v -> { config | minSpeed = v })
+        , slider "Max Force" config.maxForce 0 0.5 0.01 (\v -> { config | maxForce = v })
+        , slider "Field of View" (config.visualFieldOfView * 180 / pi) 0 360 1 (\v -> { config | visualFieldOfView = v * pi / 180 })
+        ]
+
+
+slider : String -> Float -> Float -> Float -> Float -> (Float -> Config) -> Html Msg
+slider labelText val minVal maxVal stepVal toConfig =
+    Html.div [ Attr.class "setting-item" ]
+        [ Html.label [] [ Html.text labelText ]
+        , Html.input
+            [ Attr.type_ "range"
+            , Attr.min (String.fromFloat minVal)
+            , Attr.max (String.fromFloat maxVal)
+            , Attr.step (String.fromFloat stepVal)
+            , Attr.value (String.fromFloat val)
+            , Html.Events.onInput (String.toFloat >> Maybe.withDefault val >> (\v -> UpdateConfig (toConfig v)))
+            ]
+            []
+        , Html.span [ Attr.class "setting-value" ] [ Html.text (String.fromFloat val) ]
+        ]
+
+
 renderWebGL : List (Html.Attribute Msg) -> Model -> Html Msg
 renderWebGL additionalAttrs model =
     WebGL.toHtml
@@ -381,7 +480,7 @@ backgroundEntities model =
             in
             [ WebGL.entity
                 backgroundVertexShader
-                fragmentShader
+                backgroundFragmentShader
                 backgroundMesh
                 { u_projection = projectionMatrix model.config
                 , u_color = vec3 rgb.red rgb.green rgb.blue
@@ -427,6 +526,7 @@ type alias Vertex =
     { a_pos : Vec2 -- Vertex position relative to boid center
     , a_boidPos : Vec2 -- World position of the boid
     , a_boidVel : Vec2 -- Velocity of the boid (used for rotation)
+    , a_localPos : Vec2 -- Coordinate for SDF calculation
     }
 
 
@@ -468,10 +568,14 @@ projectionMatrix config =
 boidsMesh : List Boid -> Mesh Vertex
 boidsMesh boids =
     let
+        -- A triangle large enough to encompass our SDF shape
+        size =
+            15
+
         toVertices boid =
-            [ ( Vertex (vec2 7 0) boid.position boid.velocity
-              , Vertex (vec2 -5 -3) boid.position boid.velocity
-              , Vertex (vec2 -5 3) boid.position boid.velocity
+            [ ( Vertex (vec2 size 0) boid.position boid.velocity (vec2 1 0)
+              , Vertex (vec2 -size -size) boid.position boid.velocity (vec2 -1 -1)
+              , Vertex (vec2 -size size) boid.position boid.velocity (vec2 -1 1)
               )
             ]
     in
@@ -480,15 +584,29 @@ boidsMesh boids =
         |> WebGL.triangles
 
 
-vertexShader : Shader Vertex Uniforms { v_color : Vec3 }
+backgroundFragmentShader : Shader {} Uniforms { v_color : Vec3 }
+backgroundFragmentShader =
+    [glsl|
+        precision mediump float;
+        varying vec3 v_color;
+
+        void main() {
+            gl_FragColor = vec4(v_color, 1.0);
+        }
+    |]
+
+
+vertexShader : Shader Vertex Uniforms { v_color : Vec3, v_localPos : Vec2 }
 vertexShader =
     [glsl|
         attribute vec2 a_pos;
         attribute vec2 a_boidPos;
         attribute vec2 a_boidVel;
+        attribute vec2 a_localPos;
         uniform mat4 u_projection;
         uniform vec3 u_color;
         varying vec3 v_color;
+        varying vec2 v_localPos;
 
         void main() {
             float angle = atan(a_boidVel.y, a_boidVel.x);
@@ -503,18 +621,44 @@ vertexShader =
             
             gl_Position = u_projection * vec4(finalPos, 0.0, 1.0);
             v_color = u_color;
+            v_localPos = a_localPos;
         }
     |]
 
 
-fragmentShader : Shader {} Uniforms { v_color : Vec3 }
+fragmentShader : Shader {} Uniforms { v_color : Vec3, v_localPos : Vec2 }
 fragmentShader =
     [glsl|
         precision mediump float;
         varying vec3 v_color;
+        varying vec2 v_localPos;
+
+        // SDF for a teardrop shape
+        // Based on: https://www.shadertoy.com/view/tdS3WG
+        float sdTeardrop(vec2 p, float h, float r) {
+            p.x = abs(p.x);
+            float a = r / h;
+            float b = sqrt(1.0 - a * a);
+            float k = dot(p, vec2(-b, a));
+            if (k < 0.0) return length(p) - r;
+            if (k > a * h) return length(p - vec2(0.0, h)) - 0.0;
+            return dot(p, vec2(a, b)) - r;
+        }
 
         void main() {
-            gl_FragColor = vec4(v_color, 1.0);
+            // v_localPos ranges from roughly (-1, -1) to (1, 1) inside the triangle
+            // We adjust p for the teardrop SDF: pointed part up (positive Y)
+            vec2 p = vec2(v_localPos.y, -v_localPos.x); 
+            float dist = sdTeardrop(p + vec2(0.0, 0.4), 1.5, 0.6);
+            
+            // Discard pixels outside the teardrop
+            if (dist > 0.0) {
+                discard;
+            }
+
+            // Simple shading for a rounded look
+            float shade = 1.0 - smoothstep(-0.5, 0.0, dist);
+            gl_FragColor = vec4(v_color * (0.8 + 0.2 * shade), 1.0);
         }
     |]
 
