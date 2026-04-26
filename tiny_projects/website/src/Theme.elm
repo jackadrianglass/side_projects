@@ -2,8 +2,11 @@ module Theme exposing (..)
 
 import Color exposing (rgb255)
 
+
+
 -- todo: Get the light version as well https://rosepinetheme.com/palette/ingredients/
 -- todo: Probably want to get these colors into a common Pallette type
+
 
 theme =
     -- todo: How do I get fonts to be scaled appropriately for headings and content

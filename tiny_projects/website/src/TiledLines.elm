@@ -13,8 +13,8 @@ import Canvas exposing (..)
 import Canvas.Settings exposing (..)
 import Canvas.Settings.Line exposing (lineWidth)
 import Color
-import Random
 import Html exposing (Html)
+import Random
 
 
 

@@ -2,34 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Jack Glass</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://unpkg.com/elm-canvas@2.2/elm-canvas.js"></script>
-
-  <link rel="stylesheet" href="style.css">
-  <script src="app.js"></script>
 </head>
 <body>
-	<div id="app"></div>
-	<script>
-		function getScrollBarWidth() {
-			let el = document.createElement("div");
-			el.style.cssText = "overflow:scroll; visibility:hidden; position:absolute;";
-			document.body.appendChild(el);
-			let width = el.offsetWidth - el.clientWidth;
-			el.remove();
-			return width;
-		}
-		Elm.Main.init({
-			node: document.getElementById("app"),
-			flags: {
-				windowWidth: window.innerWidth,
-				windowHeight: window.innerHeight,
-				scrollBarWidth: getScrollBarWidth(),
-			},
-		});
-	</script>
 </body>
 </html>
