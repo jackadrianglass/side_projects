@@ -111,3 +111,8 @@ Cons:
 - The repl isn't as featureful as I would like (and it's the thing that the language enthusiasts like about it)
 - Docs are kind of meh. Probably just because I miss the type system
 - No static type system
+
+# Gleam
+
+Pros:
+- Super easy to get started with. Nice starter docs
