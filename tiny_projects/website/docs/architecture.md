@@ -14,12 +14,6 @@ This repository is an `elm-pages` application.
 - Project tooling and verification tasks are configured in `devenv.nix`.
 - Canonical checks are `verify:lint`, `verify:review`, and `verify:build`.
 
-### Backend task hooks
-
-- Custom backend task entry points live in:
-  - `custom-backend-task.ts`
-  - `custom-backend-task.js`
-
 ### Deployment assumptions
 
 - Netlify configuration is in `netlify.toml`.

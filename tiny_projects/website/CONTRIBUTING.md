@@ -1,17 +1,15 @@
-### Contributing
+# Contributing
 
-### Development environment
+## Development environment
 
-- Enter the project environment with `devenv shell`.
-- Use Node/Elm tooling from the environment instead of globally installed tools.
+Development environment is managed by devenv. Use local tooling from that environment and not ones available in global environment. Available tasks are available through `devenv tasks list`.
 
 ### Before opening a PR
 
 Run the standard verification tasks:
 
-1. `devenv tasks run verify:lint`
-2. `devenv tasks run verify:review`
-3. `devenv tasks run verify:build`
+1. `devenv tasks run format`
+2. `devenv tasks run build`
 
 ### Pull request expectations
 

@@ -9,24 +9,24 @@
     pkgs.nodejs
   ];
 
+  enterShell = ''
+    export PATH="$PWD/node_modules/.bin:$PATH"
+  '';
+
   languages.elm.enable = true;
   languages.elm.lsp.enable = true;
 
   tasks = {
-    "verify:format" = {
+    "format" = {
       exec = "elm-format src app --yes";
     };
 
-    "verify:lint" = {
+    "format:check" = {
       exec = "elm-format --validate src app";
     };
 
-    "verify:review" = {
-      exec = "elm-review";
-    };
-
-    "verify:build" = {
-      exec = "npm run build";
+    "build" = {
+      exec = "elm-pages build";
     };
   };
 }
