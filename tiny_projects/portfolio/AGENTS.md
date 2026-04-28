@@ -13,9 +13,16 @@ root
   build/                    <- gleam build directory. ignore
   dist/                     <- static site target directory. ignore
   src/                      <- gleam code to generate static site
-    portfolio/              <- views, code gen logic
-    portfolio.gleam         <- ssg generation entry point. ignore
-    portfolio_dev.gleam     <- dev server entry point. ignore
+    portfolio/
+      components/
+        layout.gleam        <- shared page shell pieces (head/nav/footer)
+      pages/
+        home_page.gleam     <- homepage view
+        blog_index_page.gleam <- blog list view
+        blog_post_page.gleam <- single post template
+      site_config.gleam     <- site config + route wiring (single source of truth)
+    portfolio.gleam         <- static build entrypoint (uses `site_config.config()`)
+    portfolio_dev.gleam     <- dev server entrypoint (uses `site_config.config()`)
   static/                   <- static assets that get copied to dist/
     css/                    <- custom styling
     images/                 <- image assets. ignore
@@ -27,6 +34,13 @@ root
   gleam.toml                <- gleam build config
   manifest.toml             <- gleam lockfile
 ```
+
+### Layout architecture (concise)
+
+- Shared Lustre helpers live in `src/portfolio/components/layout.gleam`.
+- Route/page rendering is split by page under `src/portfolio/pages/`.
+- `src/portfolio/site_config.gleam` wires markdown, feed/sitemap/robots, static dirs, and routes.
+- `src/portfolio.gleam` and `src/portfolio_dev.gleam` both consume the same `site_config.config()`.
 
 # Task regions
 

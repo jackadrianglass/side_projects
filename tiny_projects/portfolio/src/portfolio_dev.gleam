@@ -1,10 +1,10 @@
 import blogatto/dev
 import blogatto/error
 import gleam/io
-import portfolio/website
+import portfolio/site_config
 
 pub fn main() {
-  let cfg = website.config()
+  let cfg = site_config.config()
 
   case
     cfg
