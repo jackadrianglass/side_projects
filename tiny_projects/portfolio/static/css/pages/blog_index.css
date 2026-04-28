@@ -1,0 +1,10 @@
+.page-blog-index .c-blog-index-hero {
+  margin-inline: auto;
+  max-width: 76ch;
+  padding-inline: 1rem;
+  padding-top: 1rem;
+}
+
+.page-blog-index .c-post-list__heading {
+  margin-top: 0;
+}

@@ -1,0 +1,14 @@
+.l-content {
+  margin-inline: auto;
+  max-width: 76ch;
+  padding: 1rem;
+}
+
+.l-screen-fill {
+  flex: 1;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}

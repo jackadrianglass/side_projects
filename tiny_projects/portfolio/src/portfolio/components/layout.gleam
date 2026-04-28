@@ -3,11 +3,13 @@ import lustre/element.{type Element}
 import lustre/element/html
 
 pub fn top_nav(breadcrumb_items: List(Element(Nil))) -> Element(Nil) {
-  html.nav([], [
-    html.ul([], breadcrumb_items),
-    html.ul([], [
-      html.li([], [html.a([attribute.href("/")], [element.text("Home")])]),
-      html.li([], [
+  html.nav([attribute.class("c-site-nav")], [
+    html.ul([attribute.class("c-site-nav__crumbs")], breadcrumb_items),
+    html.ul([attribute.class("c-site-nav__links")], [
+      html.li([attribute.class("c-site-nav__item")], [
+        html.a([attribute.href("/")], [element.text("Home")])
+      ]),
+      html.li([attribute.class("c-site-nav__item")], [
         html.a([attribute.href("/blog/")], [element.text("Blog")]),
       ]),
     ]),
@@ -36,8 +38,8 @@ pub fn page_head(title: String) -> List(Element(Nil)) {
 }
 
 pub fn blogatto_footer() -> Element(Nil) {
-  html.footer([], [
-    html.p([], [
+  html.footer([attribute.class("c-site-footer")], [
+    html.p([attribute.class("c-site-footer__content")], [
       element.text("Built with "),
       html.a([attribute.href("https://github.com/veeso/blogatto")], [
         element.text("Blogatto"),

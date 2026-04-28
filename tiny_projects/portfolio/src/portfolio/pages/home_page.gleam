@@ -8,19 +8,28 @@ import portfolio/components/layout
 pub fn view(_posts: List(Post(Nil))) -> Element(Nil) {
   html.html([attribute.lang("en")], [
     html.head([], layout.page_head("Home")),
-    html.body([attribute.class("home-page")], [
+    html.body([attribute.class("page-home")], [
       layout.top_nav([
         html.li([], [html.strong([], [element.text("Home")])]),
       ]),
-      html.main([attribute.class("home-main")], [
-        html.section([attribute.class("home-hero")], [
+      html.main([attribute.class("l-screen-fill")], [
+        html.section([attribute.class("c-home-hero")], [
           html.div([
             attribute.id("creative-widget"),
-            attribute.class("home-hero__background"),
+            attribute.class("c-home-hero__background"),
           ], []),
-          html.div([attribute.class("home-hero__overlay")], [
-            html.article([attribute.class("home-hero__card")], [
+          html.div([attribute.class("c-home-hero__overlay")], [
+            html.article([attribute.class("c-home-hero__card")], [
               html.h1([], [element.text("Jack Glass")]),
+              html.p([attribute.class("c-home-hero__lead")], [
+                element.text("Developer, tinkerer, and writer."),
+              ]),
+              html.div([attribute.class("c-home-hero__actions")], [
+                html.a([attribute.href("/blog/")], [element.text("Blog")]),
+                html.a([
+                  attribute.href("https://github.com/jackadrianglass"),
+                ], [element.text("GitHub")]),
+              ]),
             ]),
           ]),
         ]),

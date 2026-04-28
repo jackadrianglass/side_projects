@@ -15,11 +15,11 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
 
   html.html([attribute.lang("en")], [
     html.head([], layout.page_head("Simple Blog")),
-    html.body([], [
+    html.body([attribute.class("page-blog-index")], [
       layout.top_nav([
         html.li([], [html.strong([], [element.text("Blog")])]),
       ]),
-      html.header([], [
+      html.header([attribute.class("c-blog-index-hero")], [
         html.h1([], [element.text("Simple Blog")]),
         html.p([], [
           element.text(
@@ -27,17 +27,24 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
           ),
         ]),
       ]),
-      html.main([], [
-        html.h2([], [element.text("Articles")]),
+      html.main([attribute.class("l-content")], [
+        html.h2([attribute.class("c-post-list__heading")], [
+          element.text("Articles")
+        ]),
         html.ul(
-          [],
+          [attribute.class("c-post-list")],
           list.map(sorted_posts, fn(p) {
-            html.li([], [
-              html.a([attribute.href("/blog/" <> p.slug <> "/")], [
+            html.li([attribute.class("c-post-list__item")], [
+              html.a([
+                attribute.href("/blog/" <> p.slug <> "/"),
+                attribute.class("c-post-list__title"),
+              ], [
                 element.text(p.title),
               ]),
               element.text(" — "),
-              html.em([], [element.text(p.description)]),
+              html.em([attribute.class("c-post-list__description")], [
+                element.text(p.description)
+              ]),
             ])
           }),
         ),

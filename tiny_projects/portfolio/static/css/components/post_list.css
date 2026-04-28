@@ -1,0 +1,11 @@
+.c-post-list {
+  margin: 0;
+}
+
+.c-post-list__item {
+  margin-bottom: 0.65rem;
+}
+
+.c-post-list__description {
+  color: var(--pico-muted-color);
+}

@@ -1,0 +1,15 @@
+.c-post-content {
+  margin: 0;
+}
+
+.c-post-content__title {
+  margin-bottom: 0;
+}
+
+.c-post-content__description {
+  margin-top: 0.5rem;
+}
+
+.c-post-content__body {
+  margin-top: 1rem;
+}

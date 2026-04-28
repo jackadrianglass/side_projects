@@ -35,7 +35,7 @@ root
   manifest.toml             <- gleam lockfile
 ```
 
-### Layout architecture (concise)
+### Layout architecture
 
 - Shared Lustre helpers live in `src/portfolio/components/layout.gleam`.
 - Route/page rendering is split by page under `src/portfolio/pages/`.

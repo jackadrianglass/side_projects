@@ -1,0 +1,10 @@
+.page-home {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-home .c-site-nav {
+  position: relative;
+  z-index: 3;
+}

@@ -1,0 +1,31 @@
+.c-site-nav {
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  background: var(--pico-card-background-color);
+  padding: 0.5rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.c-site-nav__crumbs,
+.c-site-nav__links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+}
+
+.c-site-nav__crumbs {
+  gap: 0.5rem;
+}
+
+.c-site-nav__links {
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.c-site-nav__crumbs > li,
+.c-site-nav__item {
+  margin: 0;
+}

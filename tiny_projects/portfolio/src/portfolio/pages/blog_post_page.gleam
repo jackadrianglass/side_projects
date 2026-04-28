@@ -21,7 +21,7 @@ pub fn template(p: Post(Nil), _all_posts: List(Post(Nil))) -> Element(Nil) {
         ]),
       ]),
     ),
-    html.body([], [
+    html.body([attribute.class("page-blog-post")], [
       layout.top_nav([
         html.li([], [html.a([attribute.href("/")], [element.text("Home")])]),
         html.li([], [element.text("/")]),
@@ -29,11 +29,15 @@ pub fn template(p: Post(Nil), _all_posts: List(Post(Nil))) -> Element(Nil) {
         html.li([], [element.text("/")]),
         html.li([], [html.strong([], [element.text(p.title)])]),
       ]),
-      html.main([], [
-        html.article([], [
-          html.h1([], [element.text(p.title)]),
-          html.p([], [html.em([], [element.text(p.description)])]),
-          html.div([], p.contents),
+      html.main([attribute.class("l-content")], [
+        html.article([attribute.class("c-post-content")], [
+          html.h1([attribute.class("c-post-content__title")], [
+            element.text(p.title)
+          ]),
+          html.p([attribute.class("c-post-content__description")], [
+            html.em([], [element.text(p.description)])
+          ]),
+          html.div([attribute.class("c-post-content__body")], p.contents),
         ]),
       ]),
       layout.blogatto_footer(),
