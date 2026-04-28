@@ -37,6 +37,35 @@ body {
   margin: 0;
 }
 
+nav {
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  background: var(--pico-card-background-color);
+  padding: 0.5rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+nav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+}
+
+nav li {
+  margin: 0;
+}
+
+nav ul:first-of-type {
+  gap: 0.5rem;
+}
+
+nav ul:last-of-type {
+  justify-content: flex-end;
+}
+
 header,
 main,
 footer {

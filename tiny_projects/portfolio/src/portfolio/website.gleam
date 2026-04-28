@@ -15,6 +15,18 @@ import smalto/lustre/themes
 
 const site_url = "https://jackadrianglass.github.io"
 
+fn top_nav(breadcrumb_items: List(Element(Nil))) -> Element(Nil) {
+  html.nav([], [
+    html.ul([], breadcrumb_items),
+    html.ul([], [
+      html.li([], [html.a([attribute.href("/")], [element.text("Home")])]),
+      html.li([], [
+        html.a([attribute.href("/blog/")], [element.text("Blog")]),
+      ]),
+    ]),
+  ])
+}
+
 pub fn config() -> config.Config(Nil) {
   // Syntax highlighting configuration using CSS classes
   let syntax_config =
@@ -69,6 +81,7 @@ pub fn config() -> config.Config(Nil) {
   |> config.static_dir("./static")
   |> config.markdown(md_config)
   |> config.route("/", home_view)
+  |> config.route("/blog/", home_view)
   |> config.feed(rss)
   |> config.sitemap(sitemap_config)
   |> config.robots(robots_config)
@@ -91,7 +104,9 @@ fn home_view(posts: List(Post(Nil))) -> Element(Nil) {
       html.title([], "Simple Blog"),
       html.link([
         attribute.rel("stylesheet"),
-        attribute.href("https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"),
+        attribute.href(
+          "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css",
+        ),
       ]),
       html.link([
         attribute.rel("stylesheet"),
@@ -99,10 +114,15 @@ fn home_view(posts: List(Post(Nil))) -> Element(Nil) {
       ]),
     ]),
     html.body([], [
+      top_nav([
+        html.li([], [html.strong([], [element.text("Home")])]),
+      ]),
       html.header([], [
         html.h1([], [element.text("Simple Blog")]),
         html.p([], [
-          element.text("A simple example blog built with Blogatto with love <3."),
+          element.text(
+            "A simple example blog built with Blogatto with love <3.",
+          ),
         ]),
       ]),
       html.main([], [
@@ -137,9 +157,12 @@ fn home_view(posts: List(Post(Nil))) -> Element(Nil) {
           ]),
         ]),
       ]),
-      html.script([
-        attribute.src("https://cdn.jsdelivr.net/npm/p5@2.2.3/lib/p5.js"),
-      ], ""),
+      html.script(
+        [
+          attribute.src("https://cdn.jsdelivr.net/npm/p5@2.2.3/lib/p5.js"),
+        ],
+        "",
+      ),
       html.script([attribute.src("/js/sketches/boids.js")], ""),
     ]),
   ])
@@ -164,7 +187,9 @@ fn blog_post_template(p: Post(Nil), _all_posts: List(Post(Nil))) -> Element(Nil)
       ]),
       html.link([
         attribute.rel("stylesheet"),
-        attribute.href("https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"),
+        attribute.href(
+          "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css",
+        ),
       ]),
       html.link([
         attribute.rel("stylesheet"),
@@ -172,10 +197,12 @@ fn blog_post_template(p: Post(Nil), _all_posts: List(Post(Nil))) -> Element(Nil)
       ]),
     ]),
     html.body([], [
-      html.header([], [
-        html.nav([], [
-          html.a([attribute.href("/")], [element.text("← Home")]),
-        ]),
+      top_nav([
+        html.li([], [html.a([attribute.href("/")], [element.text("Home")])]),
+        html.li([], [element.text("/")]),
+        html.li([], [html.a([attribute.href("/blog/")], [element.text("Blog")])]),
+        html.li([], [element.text("/")]),
+        html.li([], [html.strong([], [element.text(p.title)])]),
       ]),
       html.main([], [
         html.article([], [

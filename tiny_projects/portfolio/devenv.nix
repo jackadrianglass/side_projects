@@ -6,8 +6,6 @@
   languages.gleam.enable = true;
 
   tasks = {
-    "basic:check".exec = "gleam check";
-    "basic:test".exec = "gleam test";
     "basic:build".exec = "gleam run";
     "basic:dev".exec = "gleam dev";
   };
