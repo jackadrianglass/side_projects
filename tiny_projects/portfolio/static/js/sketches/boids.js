@@ -6,8 +6,37 @@
 // Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 let flock;
 
+function getWidgetSize() {
+  const widget = document.getElementById('creative-widget');
+
+  // Size is driven by the mount container (or viewport fallback when absent).
+  const target = widget ?? document.documentElement;
+  const rect = target.getBoundingClientRect();
+  const width = Math.max(1, Math.ceil(rect.width));
+  const height = Math.max(1, Math.ceil(rect.height));
+
+  return {
+    width,
+    height,
+    widget,
+  };
+}
+
+function resizeCanvasToWidget() {
+  const { width, height } = getWidgetSize();
+  resizeCanvas(width, height);
+}
+
 function setup() {
-  createCanvas(640, 360).parent('creative-widget');
+  const { width, height, widget } = getWidgetSize();
+  const canvas = createCanvas(width, height);
+
+  if (widget) {
+    canvas.parent(widget);
+  }
+
+  // Re-sync once after first paint to avoid initial layout timing gaps.
+  requestAnimationFrame(resizeCanvasToWidget);
 
   flock = new Flock();
 
@@ -25,6 +54,10 @@ function setup() {
 function draw() {
   background(0);
   flock.run();
+}
+
+function windowResized() {
+  resizeCanvasToWidget();
 }
 
 // On mouse drag, add a new boid to the flock

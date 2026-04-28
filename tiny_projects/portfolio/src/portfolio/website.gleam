@@ -27,6 +27,27 @@ fn top_nav(breadcrumb_items: List(Element(Nil))) -> Element(Nil) {
   ])
 }
 
+fn page_head(title: String) -> List(Element(Nil)) {
+  [
+    html.meta([attribute.charset("UTF-8")]),
+    html.meta([
+      attribute.name("viewport"),
+      attribute.content("width=device-width, initial-scale=1"),
+    ]),
+    html.title([], title),
+    html.link([
+      attribute.rel("stylesheet"),
+      attribute.href(
+        "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css",
+      ),
+    ]),
+    html.link([
+      attribute.rel("stylesheet"),
+      attribute.href("/css/style.css"),
+    ]),
+  ]
+}
+
 pub fn config() -> config.Config(Nil) {
   // Syntax highlighting configuration using CSS classes
   let syntax_config =
@@ -81,41 +102,56 @@ pub fn config() -> config.Config(Nil) {
   |> config.static_dir("./static")
   |> config.markdown(md_config)
   |> config.route("/", home_view)
-  |> config.route("/blog/", home_view)
+  |> config.route("/blog/", blog_index_view)
   |> config.feed(rss)
   |> config.sitemap(sitemap_config)
   |> config.robots(robots_config)
 }
 
-/// Home page view: renders a header and a list of all blog posts
-/// sorted by date (newest first).
-fn home_view(posts: List(Post(Nil))) -> Element(Nil) {
+/// Home page view: renders the landing layout and boids sketch.
+fn home_view(_posts: List(Post(Nil))) -> Element(Nil) {
+  html.html([attribute.lang("en")], [
+    html.head([], page_head("Home")),
+    html.body([attribute.class("home-page")], [
+      top_nav([
+        html.li([], [html.strong([], [element.text("Home")])]),
+      ]),
+      html.main([attribute.class("home-main")], [
+        html.section([attribute.class("home-hero")], [
+          html.div([
+            attribute.id("creative-widget"),
+            attribute.class("home-hero__background"),
+          ], []),
+          html.div([attribute.class("home-hero__overlay")], [
+            html.article([attribute.class("home-hero__card")], [
+              html.h1([], [element.text("Jack Glass")]),
+            ]),
+          ]),
+        ]),
+      ]),
+      html.script(
+        [
+          attribute.src("https://cdn.jsdelivr.net/npm/p5@2.2.3/lib/p5.js"),
+        ],
+        "",
+      ),
+      html.script([attribute.src("/js/sketches/boids.js")], ""),
+    ]),
+  ])
+}
+
+/// Blog index view: renders a list of all blog posts sorted by date
+/// (newest first).
+fn blog_index_view(posts: List(Post(Nil))) -> Element(Nil) {
   // Sort posts newest first by comparing dates in reverse
   let sorted_posts =
     list.sort(posts, fn(a, b) { timestamp.compare(b.date, a.date) })
 
   html.html([attribute.lang("en")], [
-    html.head([], [
-      html.meta([attribute.charset("UTF-8")]),
-      html.meta([
-        attribute.name("viewport"),
-        attribute.content("width=device-width, initial-scale=1"),
-      ]),
-      html.title([], "Simple Blog"),
-      html.link([
-        attribute.rel("stylesheet"),
-        attribute.href(
-          "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css",
-        ),
-      ]),
-      html.link([
-        attribute.rel("stylesheet"),
-        attribute.href("/css/style.css"),
-      ]),
-    ]),
+    html.head([], page_head("Simple Blog")),
     html.body([], [
       top_nav([
-        html.li([], [html.strong([], [element.text("Home")])]),
+        html.li([], [html.strong([], [element.text("Blog")])]),
       ]),
       html.header([], [
         html.h1([], [element.text("Simple Blog")]),
@@ -127,15 +163,6 @@ fn home_view(posts: List(Post(Nil))) -> Element(Nil) {
       ]),
       html.main([], [
         html.h2([], [element.text("Articles")]),
-        html.section([attribute.class("home-widget")], [
-          html.h3([], [element.text("Creative Corner")]),
-          html.p([], [
-            element.text(
-              "This section is static-first, with a p5.js boids sketch mounted as a dynamic widget.",
-            ),
-          ]),
-          html.div([attribute.id("creative-widget")], []),
-        ]),
         html.ul(
           [],
           list.map(sorted_posts, fn(p) {
@@ -157,13 +184,6 @@ fn home_view(posts: List(Post(Nil))) -> Element(Nil) {
           ]),
         ]),
       ]),
-      html.script(
-        [
-          attribute.src("https://cdn.jsdelivr.net/npm/p5@2.2.3/lib/p5.js"),
-        ],
-        "",
-      ),
-      html.script([attribute.src("/js/sketches/boids.js")], ""),
     ]),
   ])
 }
@@ -174,28 +194,15 @@ fn blog_post_template(p: Post(Nil), _all_posts: List(Post(Nil))) -> Element(Nil)
   let lang = option.unwrap(p.language, "en")
 
   html.html([attribute.lang(lang)], [
-    html.head([], [
-      html.meta([attribute.charset("UTF-8")]),
-      html.meta([
-        attribute.name("viewport"),
-        attribute.content("width=device-width, initial-scale=1"),
+    html.head(
+      [],
+      list.append(page_head(p.title), [
+        html.meta([
+          attribute.name("description"),
+          attribute.content(p.description),
+        ]),
       ]),
-      html.title([], p.title),
-      html.meta([
-        attribute.name("description"),
-        attribute.content(p.description),
-      ]),
-      html.link([
-        attribute.rel("stylesheet"),
-        attribute.href(
-          "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css",
-        ),
-      ]),
-      html.link([
-        attribute.rel("stylesheet"),
-        attribute.href("/css/style.css"),
-      ]),
-    ]),
+    ),
     html.body([], [
       top_nav([
         html.li([], [html.a([attribute.href("/")], [element.text("Home")])]),
