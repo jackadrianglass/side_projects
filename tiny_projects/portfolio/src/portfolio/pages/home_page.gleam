@@ -113,7 +113,7 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
         ]),
         html.div([attribute.class("l-content c-home-sections")], [
           html.section([attribute.class("c-home-section c-home-section--about")], [
-            html.h2([], [element.text("About / Developer Profile")]),
+            html.h2([], [element.text("About")]),
             html.p([], [
               element.text(
                 "Use this section to introduce who you are as a developer in your own voice.",
@@ -135,21 +135,6 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
                   "Prompt: What should a first-time visitor remember about you after this page?",
                 ),
               ]),
-            ]),
-          ]),
-          html.section([
-            attribute.class("c-home-section c-home-section--experiments"),
-          ], [
-            html.h2([], [element.text("Featured Experiments")]),
-            html.p([], [
-              element.text(
-                "Use these project cards as structured placeholders. Replace prompts with real project details.",
-              ),
-            ]),
-            html.div([attribute.class("c-home-project-grid")], [
-              project_prompt_card("Project placeholder 1"),
-              project_prompt_card("Project placeholder 2"),
-              project_prompt_card("Project placeholder 3"),
             ]),
           ]),
           html.section([
