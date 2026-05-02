@@ -1,7 +1,7 @@
 .c-home-hero {
   position: relative;
-  flex: 1;
-  min-height: 0;
+  flex: none;
+  min-height: max(32rem, calc(100dvh - 4rem));
   overflow: hidden;
   background: var(--pico-background-color);
 }

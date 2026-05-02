@@ -1,18 +1,96 @@
 import blogatto/post.{type Post}
+import gleam/list
+import gleam/time/timestamp
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
 import portfolio/components/layout
 
+fn take_posts(posts: List(a), count: Int) -> List(a) {
+  case count <= 0 {
+    True -> []
+    False ->
+      case posts {
+        [] -> []
+        [first, ..rest] -> [first, ..take_posts(rest, count - 1)]
+      }
+  }
+}
+
+fn latest_posts(posts: List(Post(Nil))) -> List(Post(Nil)) {
+  posts
+  |> list.sort(fn(a, b) { timestamp.compare(b.date, a.date) })
+  |> take_posts(3)
+}
+
+fn project_prompt_card(slot_name: String) -> Element(Nil) {
+  html.article([attribute.class("c-home-project-card")], [
+    html.h3([], [element.text(slot_name)]),
+    html.ul([attribute.class("c-home-project-card__fields")], [
+      html.li([], [
+        html.strong([], [element.text("Project name: ")]),
+        element.text("[replace with your project name]"),
+      ]),
+      html.li([], [
+        html.strong([], [element.text("One-line summary: ")]),
+        element.text("[what it does in one sentence]"),
+      ]),
+      html.li([], [
+        html.strong([], [element.text("Why it exists: ")]),
+        element.text("[problem or curiosity this project explores]"),
+      ]),
+      html.li([], [
+        html.strong([], [element.text("Tech tags: ")]),
+        element.text("[language, framework, tools]"),
+      ]),
+      html.li([], [
+        html.strong([], [element.text("Status: ")]),
+        element.text("[idea | in progress | stable | archived]"),
+      ]),
+      html.li([], [
+        html.strong([], [element.text("Link: ")]),
+        element.text("[repo, demo, or write-up URL]"),
+      ]),
+    ]),
+  ])
+}
+
+fn latest_posts_preview(posts: List(Post(Nil))) -> Element(Nil) {
+  case posts {
+    [] ->
+      html.p([attribute.class("c-home-latest-posts__empty")], [
+        element.text(
+          "Huh... I guess I haven't written anything yet. Stayed tuned!",
+        ),
+      ])
+    _ ->
+      html.ul([attribute.class("c-home-latest-posts")], list.map(posts, fn(post) {
+        html.li([attribute.class("c-home-latest-posts__item")], [
+          html.a([
+            attribute.href("/blog/" <> post.slug <> "/"),
+            attribute.class("c-home-latest-posts__title"),
+          ], [
+            element.text(post.title),
+          ]),
+          html.p([attribute.class("c-home-latest-posts__description")], [
+            element.text(post.description)
+          ]),
+        ])
+      }))
+  }
+}
+
 /// Home page view: renders the landing layout and boids sketch.
-pub fn view(_posts: List(Post(Nil))) -> Element(Nil) {
+pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
+  let featured_posts = latest_posts(posts)
+
   html.html([attribute.lang("en")], [
     html.head([], layout.page_head("Home")),
     html.body([attribute.class("page-home")], [
       layout.top_nav([
         html.li([], [html.strong([], [element.text("Home")])]),
       ]),
-      html.main([attribute.class("l-screen-fill")], [
+      html.main([attribute.class("page-home__main")], [
         html.section([attribute.class("c-home-hero")], [
           html.div([
             attribute.id("creative-widget"),
@@ -29,6 +107,86 @@ pub fn view(_posts: List(Post(Nil))) -> Element(Nil) {
                 html.a([
                   attribute.href("https://github.com/jackadrianglass"),
                 ], [element.text("GitHub")]),
+              ]),
+            ]),
+          ]),
+        ]),
+        html.div([attribute.class("l-content c-home-sections")], [
+          html.section([attribute.class("c-home-section c-home-section--about")], [
+            html.h2([], [element.text("About / Developer Profile")]),
+            html.p([], [
+              element.text(
+                "Use this section to introduce who you are as a developer in your own voice.",
+              ),
+            ]),
+            html.ul([], [
+              html.li([], [
+                element.text(
+                  "Prompt: What kind of software problems do you enjoy solving most?",
+                ),
+              ]),
+              html.li([], [
+                element.text(
+                  "Prompt: What principles shape how you build and learn?",
+                ),
+              ]),
+              html.li([], [
+                element.text(
+                  "Prompt: What should a first-time visitor remember about you after this page?",
+                ),
+              ]),
+            ]),
+          ]),
+          html.section([
+            attribute.class("c-home-section c-home-section--experiments"),
+          ], [
+            html.h2([], [element.text("Featured Experiments")]),
+            html.p([], [
+              element.text(
+                "Use these project cards as structured placeholders. Replace prompts with real project details.",
+              ),
+            ]),
+            html.div([attribute.class("c-home-project-grid")], [
+              project_prompt_card("Project placeholder 1"),
+              project_prompt_card("Project placeholder 2"),
+              project_prompt_card("Project placeholder 3"),
+            ]),
+          ]),
+          html.section([
+            attribute.class("c-home-section c-home-section--latest-posts"),
+          ], [
+            html.h2([], [element.text("Latest Blog Posts")]),
+            html.p([], [
+              element.text(
+                "This section previews your newest writing so visitors can jump directly into your ideas.",
+              ),
+            ]),
+            latest_posts_preview(featured_posts),
+          ]),
+          html.section([
+            attribute.class("c-home-section c-home-section--contact"),
+          ], [
+            html.h2([], [element.text("Contact / Links")]),
+            html.p([], [
+              element.text(
+                "Use this section for the next action: where someone should go to connect with you.",
+              ),
+            ]),
+            html.div([attribute.class("c-home-contact-links")], [
+              html.a([attribute.href("https://github.com/jackadrianglass")], [
+                element.text("GitHub")
+              ]),
+              html.a([attribute.href("/blog/")], [element.text("Read the blog")]),
+            ]),
+            html.ul([], [
+              html.li([], [
+                element.text("Prompt: Primary contact method and expected response style."),
+              ]),
+              html.li([], [
+                element.text("Prompt: External profiles to highlight (GitHub, LinkedIn, etc.)."),
+              ]),
+              html.li([], [
+                element.text("Prompt: Final CTA to continue to your blog or experiments."),
               ]),
             ]),
           ]),

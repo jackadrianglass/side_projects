@@ -60,6 +60,7 @@ Ideas
 - [ ] Random research topics
 - [ ] Meta learning from the view point of a musician with programming
 - [ ] Linking knowledge together
+- [ ] Reaction to [this video](https://www.youtube.com/watch?v=V-ZvAw_VNk4)
 
 With any post
 - Context is important! Add it where you can
