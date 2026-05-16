@@ -23,38 +23,6 @@ fn latest_posts(posts: List(Post(Nil))) -> List(Post(Nil)) {
   |> take_posts(3)
 }
 
-fn project_prompt_card(slot_name: String) -> Element(Nil) {
-  html.article([attribute.class("c-home-project-card")], [
-    html.h3([], [element.text(slot_name)]),
-    html.ul([attribute.class("c-home-project-card__fields")], [
-      html.li([], [
-        html.strong([], [element.text("Project name: ")]),
-        element.text("[replace with your project name]"),
-      ]),
-      html.li([], [
-        html.strong([], [element.text("One-line summary: ")]),
-        element.text("[what it does in one sentence]"),
-      ]),
-      html.li([], [
-        html.strong([], [element.text("Why it exists: ")]),
-        element.text("[problem or curiosity this project explores]"),
-      ]),
-      html.li([], [
-        html.strong([], [element.text("Tech tags: ")]),
-        element.text("[language, framework, tools]"),
-      ]),
-      html.li([], [
-        html.strong([], [element.text("Status: ")]),
-        element.text("[idea | in progress | stable | archived]"),
-      ]),
-      html.li([], [
-        html.strong([], [element.text("Link: ")]),
-        element.text("[repo, demo, or write-up URL]"),
-      ]),
-    ]),
-  ])
-}
-
 fn latest_posts_preview(posts: List(Post(Nil))) -> Element(Nil) {
   case posts {
     [] ->
@@ -64,19 +32,25 @@ fn latest_posts_preview(posts: List(Post(Nil))) -> Element(Nil) {
         ),
       ])
     _ ->
-      html.ul([attribute.class("c-home-latest-posts")], list.map(posts, fn(post) {
-        html.li([attribute.class("c-home-latest-posts__item")], [
-          html.a([
-            attribute.href("/blog/" <> post.slug <> "/"),
-            attribute.class("c-home-latest-posts__title"),
-          ], [
-            element.text(post.title),
-          ]),
-          html.p([attribute.class("c-home-latest-posts__description")], [
-            element.text(post.description)
-          ]),
-        ])
-      }))
+      html.ul(
+        [attribute.class("c-home-latest-posts")],
+        list.map(posts, fn(post) {
+          html.li([attribute.class("c-home-latest-posts__item")], [
+            html.a(
+              [
+                attribute.href("/blog/" <> post.slug <> "/"),
+                attribute.class("c-home-latest-posts__title"),
+              ],
+              [
+                element.text(post.title),
+              ],
+            ),
+            html.p([attribute.class("c-home-latest-posts__description")], [
+              element.text(post.description),
+            ]),
+          ])
+        }),
+      )
   }
 }
 
@@ -92,10 +66,13 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
       ]),
       html.main([attribute.class("page-home__main")], [
         html.section([attribute.class("c-home-hero")], [
-          html.div([
-            attribute.id("creative-widget"),
-            attribute.class("c-home-hero__background"),
-          ], []),
+          html.div(
+            [
+              attribute.id("creative-widget"),
+              attribute.class("c-home-hero__background"),
+            ],
+            [],
+          ),
           html.div([attribute.class("c-home-hero__overlay")], [
             html.article([attribute.class("c-home-hero__card")], [
               html.h1([], [element.text("Jack Glass")]),
@@ -104,77 +81,97 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
               ]),
               html.div([attribute.class("c-home-hero__actions")], [
                 html.a([attribute.href("/blog/")], [element.text("Blog")]),
-                html.a([
-                  attribute.href("https://github.com/jackadrianglass"),
-                ], [element.text("GitHub")]),
+                html.a(
+                  [
+                    attribute.href("https://github.com/jackadrianglass"),
+                  ],
+                  [element.text("GitHub")],
+                ),
               ]),
             ]),
           ]),
         ]),
         html.div([attribute.class("l-content c-home-sections")], [
-          html.section([attribute.class("c-home-section c-home-section--about")], [
-            html.h2([], [element.text("About")]),
-            html.p([], [
-              element.text(
-                "Use this section to introduce who you are as a developer in your own voice.",
-              ),
-            ]),
-            html.ul([], [
-              html.li([], [
+          html.section(
+            [attribute.class("c-home-section c-home-section--about")],
+            [
+              html.h2([], [element.text("About")]),
+              html.p([], [
                 element.text(
-                  "Prompt: What kind of software problems do you enjoy solving most?",
+                  "Use this section to introduce who you are as a developer in your own voice.",
                 ),
               ]),
-              html.li([], [
+              html.ul([], [
+                html.li([], [
+                  element.text(
+                    "Prompt: What kind of software problems do you enjoy solving most?",
+                  ),
+                ]),
+                html.li([], [
+                  element.text(
+                    "Prompt: What principles shape how you build and learn?",
+                  ),
+                ]),
+                html.li([], [
+                  element.text(
+                    "Prompt: What should a first-time visitor remember about you after this page?",
+                  ),
+                ]),
+              ]),
+            ],
+          ),
+          html.section(
+            [
+              attribute.class("c-home-section c-home-section--latest-posts"),
+            ],
+            [
+              html.h2([], [element.text("Latest Blog Posts")]),
+              html.p([], [
                 element.text(
-                  "Prompt: What principles shape how you build and learn?",
+                  "This section previews your newest writing so visitors can jump directly into your ideas.",
                 ),
               ]),
-              html.li([], [
+              latest_posts_preview(featured_posts),
+            ],
+          ),
+          html.section(
+            [
+              attribute.class("c-home-section c-home-section--contact"),
+            ],
+            [
+              html.h2([], [element.text("Contact / Links")]),
+              html.p([], [
                 element.text(
-                  "Prompt: What should a first-time visitor remember about you after this page?",
+                  "Use this section for the next action: where someone should go to connect with you.",
                 ),
               ]),
-            ]),
-          ]),
-          html.section([
-            attribute.class("c-home-section c-home-section--latest-posts"),
-          ], [
-            html.h2([], [element.text("Latest Blog Posts")]),
-            html.p([], [
-              element.text(
-                "This section previews your newest writing so visitors can jump directly into your ideas.",
-              ),
-            ]),
-            latest_posts_preview(featured_posts),
-          ]),
-          html.section([
-            attribute.class("c-home-section c-home-section--contact"),
-          ], [
-            html.h2([], [element.text("Contact / Links")]),
-            html.p([], [
-              element.text(
-                "Use this section for the next action: where someone should go to connect with you.",
-              ),
-            ]),
-            html.div([attribute.class("c-home-contact-links")], [
-              html.a([attribute.href("https://github.com/jackadrianglass")], [
-                element.text("GitHub")
+              html.div([attribute.class("c-home-contact-links")], [
+                html.a([attribute.href("https://github.com/jackadrianglass")], [
+                  element.text("GitHub"),
+                ]),
+                html.a([attribute.href("/blog/")], [
+                  element.text("Read the blog"),
+                ]),
               ]),
-              html.a([attribute.href("/blog/")], [element.text("Read the blog")]),
-            ]),
-            html.ul([], [
-              html.li([], [
-                element.text("Prompt: Primary contact method and expected response style."),
+              html.ul([], [
+                html.li([], [
+                  element.text(
+                    "Prompt: Primary contact method and expected response style.",
+                  ),
+                ]),
+                html.li([], [
+                  element.text(
+                    "Prompt: External profiles to highlight (GitHub, LinkedIn, etc.).",
+                  ),
+                ]),
+                html.li([], [
+                  element.text(
+                    "Prompt: Final CTA to continue to your blog or experiments.",
+                  ),
+                ]),
               ]),
-              html.li([], [
-                element.text("Prompt: External profiles to highlight (GitHub, LinkedIn, etc.)."),
-              ]),
-              html.li([], [
-                element.text("Prompt: Final CTA to continue to your blog or experiments."),
-              ]),
-            ]),
-          ]),
+            ],
+          ),
         ]),
       ]),
       html.script(

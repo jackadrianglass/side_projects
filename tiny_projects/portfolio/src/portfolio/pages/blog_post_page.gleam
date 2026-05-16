@@ -32,10 +32,10 @@ pub fn template(p: Post(Nil), _all_posts: List(Post(Nil))) -> Element(Nil) {
       html.main([attribute.class("l-content")], [
         html.article([attribute.class("c-post-content")], [
           html.h1([attribute.class("c-post-content__title")], [
-            element.text(p.title)
+            element.text(p.title),
           ]),
           html.p([attribute.class("c-post-content__description")], [
-            html.em([], [element.text(p.description)])
+            html.em([], [element.text(p.description)]),
           ]),
           html.div([attribute.class("c-post-content__body")], p.contents),
         ]),

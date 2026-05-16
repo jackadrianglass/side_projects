@@ -7,7 +7,7 @@ pub fn top_nav(breadcrumb_items: List(Element(Nil))) -> Element(Nil) {
     html.ul([attribute.class("c-site-nav__crumbs")], breadcrumb_items),
     html.ul([attribute.class("c-site-nav__links")], [
       html.li([attribute.class("c-site-nav__item")], [
-        html.a([attribute.href("/")], [element.text("Home")])
+        html.a([attribute.href("/")], [element.text("Home")]),
       ]),
       html.li([attribute.class("c-site-nav__item")], [
         html.a([attribute.href("/blog/")], [element.text("Blog")]),

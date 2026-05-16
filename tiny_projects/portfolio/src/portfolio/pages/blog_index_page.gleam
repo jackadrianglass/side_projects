@@ -29,21 +29,24 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
       ]),
       html.main([attribute.class("l-content")], [
         html.h2([attribute.class("c-post-list__heading")], [
-          element.text("Articles")
+          element.text("Articles"),
         ]),
         html.ul(
           [attribute.class("c-post-list")],
           list.map(sorted_posts, fn(p) {
             html.li([attribute.class("c-post-list__item")], [
-              html.a([
-                attribute.href("/blog/" <> p.slug <> "/"),
-                attribute.class("c-post-list__title"),
-              ], [
-                element.text(p.title),
-              ]),
+              html.a(
+                [
+                  attribute.href("/blog/" <> p.slug <> "/"),
+                  attribute.class("c-post-list__title"),
+                ],
+                [
+                  element.text(p.title),
+                ],
+              ),
               element.text(" — "),
               html.em([attribute.class("c-post-list__description")], [
-                element.text(p.description)
+                element.text(p.description),
               ]),
             ])
           }),
