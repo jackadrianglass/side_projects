@@ -26,6 +26,10 @@
 .c-post-card {
   display: block;
   margin-bottom: 1.5rem;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 .c-post-card__title {

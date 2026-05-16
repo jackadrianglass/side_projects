@@ -1,5 +1,9 @@
 .c-post-content {
   margin: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 .c-post-content__title {

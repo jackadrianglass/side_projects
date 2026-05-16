@@ -24,15 +24,13 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
         html.li([], [element.text("/")]),
         html.li([], [html.strong([], [element.text("blog")])]),
       ]),
-      html.header([attribute.class("c-blog-index-hero")], [
+      html.main([attribute.class("l-content")], [
         html.h1([], [element.text("Simple Blog")]),
         html.p([], [
           element.text(
             "A simple example blog built with Blogatto with love <3.",
           ),
         ]),
-      ]),
-      html.main([attribute.class("l-content")], [
         html.h2([attribute.class("c-post-list__heading")], [
           element.text("Articles"),
         ]),
