@@ -1,6 +1,5 @@
 .l-content {
-  margin-inline: auto;
-  max-width: min(70rem, 100%);
+  width: min(70rem, 100%);
   padding: 1rem;
 }
 
