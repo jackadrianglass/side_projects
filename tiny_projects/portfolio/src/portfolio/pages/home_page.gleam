@@ -62,7 +62,7 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
     html.head([], layout.page_head("Home")),
     html.body([attribute.class("page-home")], [
       layout.top_nav([
-        html.li([], [html.a([attribute.href("/")], [element.text("...")])]),
+        html.li([], [html.a([attribute.href("/")], [element.text("~")])]),
       ]),
       html.main([attribute.class("page-home__main")], [
         html.section([attribute.class("c-home-hero")], [

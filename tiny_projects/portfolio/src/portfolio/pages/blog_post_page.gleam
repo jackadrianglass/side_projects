@@ -23,7 +23,7 @@ pub fn template(p: Post(Nil), _all_posts: List(Post(Nil))) -> Element(Nil) {
     ),
     html.body([attribute.class("page-blog-post")], [
       layout.top_nav([
-        html.li([], [html.a([attribute.href("/")], [element.text("...")])]),
+        html.li([], [html.a([attribute.href("/")], [element.text("~")])]),
         html.li([], [element.text("/")]),
         html.li([], [html.a([attribute.href("/blog/")], [element.text("blog")])]),
         html.li([], [element.text("/")]),
