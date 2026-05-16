@@ -51,9 +51,19 @@ function setup() {
   );
 }
 
+function getThemeColors() {
+  const style = getComputedStyle(document.documentElement);
+  return {
+    background: style.getPropertyValue('--pico-background-color').trim(),
+    boidFill: style.getPropertyValue('--widget-accent').trim(),
+    boidStroke: style.getPropertyValue('--pico-color').trim(),
+  };
+}
+
 function draw() {
-  background(0);
-  flock.run();
+  const colors = getThemeColors();
+  background(colors.background);
+  flock.run(colors);
 }
 
 function windowResized() {
@@ -74,10 +84,10 @@ class Flock {
     this.boids = [];
   }
 
-  run() {
+  run(colors) {
     for (let boid of this.boids) {
       // Pass the entire list of boids to each boid individually
-      boid.run(this.boids);
+      boid.run(this.boids, colors);
     }
   }
 
@@ -98,15 +108,13 @@ class Boid {
 
     // Maximum steering force
     this.maxForce = 0.05;
-    colorMode(HSB);
-    this.color = color(random(256), 255, 255);
   }
 
-  run(boids) {
+  run(boids, colors) {
     this.flock(boids);
     this.update();
     this.borders();
-    this.render();
+    this.render(colors);
   }
 
   applyForce(force) {
@@ -162,11 +170,11 @@ class Boid {
     return steer;
   }
 
-  render() {
+  render(colors) {
     // Draw a triangle rotated in the direction of velocity
     let theta = this.velocity.heading() + radians(90);
-    fill(this.color);
-    stroke(255);
+    fill(colors.boidFill);
+    stroke(colors.boidStroke);
     push();
     translate(this.position.x, this.position.y);
     rotate(theta);

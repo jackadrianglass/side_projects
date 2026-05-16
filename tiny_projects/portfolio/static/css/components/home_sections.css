@@ -15,6 +15,12 @@
   padding: 1.25rem;
 }
 
+.c-home-section h2,
+.c-home-project-card h3 {
+  font-family: var(--font-mono);
+  letter-spacing: -0.01em;
+}
+
 .c-home-section > :first-child {
   margin-top: 0;
 }
@@ -42,6 +48,7 @@
 .c-home-project-card__fields {
   margin: 0;
   padding-left: 1rem;
+  font-size: 0.95rem;
 }
 
 .c-home-project-card__fields > li {
@@ -58,12 +65,14 @@
 }
 
 .c-home-latest-posts__title {
+  font-family: var(--font-mono);
   font-weight: 600;
 }
 
 .c-home-latest-posts__description {
   margin: 0.35rem 0 0;
   color: var(--pico-muted-color);
+  font-size: 0.95rem;
 }
 
 .c-home-latest-posts__empty {

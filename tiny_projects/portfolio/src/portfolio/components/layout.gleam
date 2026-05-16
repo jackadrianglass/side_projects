@@ -5,13 +5,8 @@ import lustre/element/html
 pub fn top_nav(breadcrumb_items: List(Element(Nil))) -> Element(Nil) {
   html.nav([attribute.class("c-site-nav")], [
     html.ul([attribute.class("c-site-nav__crumbs")], breadcrumb_items),
-    html.ul([attribute.class("c-site-nav__links")], [
-      html.li([attribute.class("c-site-nav__item")], [
-        html.a([attribute.href("/")], [element.text("Home")]),
-      ]),
-      html.li([attribute.class("c-site-nav__item")], [
-        html.a([attribute.href("/blog/")], [element.text("Blog")]),
-      ]),
+    html.nav([attribute.class("c-site-nav__links")], [
+      html.a([attribute.href("/blog/")], [element.text("Blog")]),
     ]),
   ])
 }
@@ -37,12 +32,22 @@ pub fn page_head(title: String) -> List(Element(Nil)) {
   ]
 }
 
-pub fn blogatto_footer() -> Element(Nil) {
+pub fn page_footer() -> Element(Nil) {
   html.footer([attribute.class("c-site-footer")], [
-    html.p([attribute.class("c-site-footer__content")], [
-      element.text("Built with "),
-      html.a([attribute.href("https://github.com/veeso/blogatto")], [
-        element.text("Blogatto"),
+    html.div([attribute.class("c-site-footer__inner")], [
+      html.span([attribute.class("c-site-footer__name")], [
+        element.text("Jack Glass"),
+      ]),
+      html.span([attribute.class("c-site-footer__sep")], [
+        element.text("|"),
+      ]),
+      html.nav([attribute.class("c-site-footer__links")], [
+        html.a([attribute.href("https://github.com/jackadrianglass")], [
+          element.text("GitHub"),
+        ]),
+        html.a([attribute.href("/blog/")], [
+          element.text("Blog"),
+        ]),
       ]),
     ]),
   ])

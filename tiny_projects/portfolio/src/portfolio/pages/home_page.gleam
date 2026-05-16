@@ -62,7 +62,7 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
     html.head([], layout.page_head("Home")),
     html.body([attribute.class("page-home")], [
       layout.top_nav([
-        html.li([], [html.strong([], [element.text("Home")])]),
+        html.li([], [html.a([attribute.href("/")], [element.text("...")])]),
       ]),
       html.main([attribute.class("page-home__main")], [
         html.section([attribute.class("c-home-hero")], [
@@ -134,46 +134,9 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
               latest_posts_preview(featured_posts),
             ],
           ),
-          html.section(
-            [
-              attribute.class("c-home-section c-home-section--contact"),
-            ],
-            [
-              html.h2([], [element.text("Contact / Links")]),
-              html.p([], [
-                element.text(
-                  "Use this section for the next action: where someone should go to connect with you.",
-                ),
-              ]),
-              html.div([attribute.class("c-home-contact-links")], [
-                html.a([attribute.href("https://github.com/jackadrianglass")], [
-                  element.text("GitHub"),
-                ]),
-                html.a([attribute.href("/blog/")], [
-                  element.text("Read the blog"),
-                ]),
-              ]),
-              html.ul([], [
-                html.li([], [
-                  element.text(
-                    "Prompt: Primary contact method and expected response style.",
-                  ),
-                ]),
-                html.li([], [
-                  element.text(
-                    "Prompt: External profiles to highlight (GitHub, LinkedIn, etc.).",
-                  ),
-                ]),
-                html.li([], [
-                  element.text(
-                    "Prompt: Final CTA to continue to your blog or experiments.",
-                  ),
-                ]),
-              ]),
-            ],
-          ),
         ]),
       ]),
+      layout.page_footer(),
       html.script(
         [
           attribute.src("https://cdn.jsdelivr.net/npm/p5@2.2.3/lib/p5.js"),
