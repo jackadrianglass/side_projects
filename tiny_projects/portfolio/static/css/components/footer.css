@@ -2,6 +2,7 @@
   border-top: 1px solid var(--pico-muted-border-color);
   padding-block: 0.5rem;
   padding-inline: 1rem;
+  margin-top: auto;
 }
 
 .c-site-footer__inner {
