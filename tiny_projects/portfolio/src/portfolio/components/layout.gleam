@@ -1,3 +1,4 @@
+import gleam/list
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
@@ -7,6 +8,7 @@ pub fn top_nav(breadcrumb_items: List(Element(Nil))) -> Element(Nil) {
     html.ul([attribute.class("c-site-nav__crumbs")], breadcrumb_items),
     html.nav([attribute.class("c-site-nav__links")], [
       html.a([attribute.href("/blog/")], [element.text("Blog")]),
+      html.a([attribute.href("/cv/")], [element.text("CV")]),
     ]),
   ])
 }
@@ -51,6 +53,15 @@ pub fn page_head(title: String) -> List(Element(Nil)) {
       attribute.href("/site.webmanifest"),
     ]),
   ]
+}
+
+pub fn tag_list(tags: List(String)) -> Element(Nil) {
+  html.ul(
+    [attribute.class("c-tag-list")],
+    list.map(tags, fn(tag) {
+      html.li([attribute.class("c-tag")], [element.text(tag)])
+    }),
+  )
 }
 
 pub fn page_footer() -> Element(Nil) {

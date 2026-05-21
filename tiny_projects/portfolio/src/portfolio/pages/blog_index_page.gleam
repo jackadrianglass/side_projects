@@ -24,7 +24,7 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
         html.li([], [element.text("/")]),
         html.li([], [html.strong([], [element.text("blog")])]),
       ]),
-      html.main([attribute.class("l-content")], [
+      html.main([], [
         html.h1([], [element.text("Simple Blog")]),
         html.p([], [
           element.text(
@@ -36,7 +36,7 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
         ]),
         html.ul(
           [attribute.class("c-post-list")],
-          list.map(sorted_posts, fn(p) {
+            list.map(sorted_posts, fn(p) {
             let tldr =
               dict.get(p.extras, "tldr")
               |> option.from_result
@@ -65,15 +65,7 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
                 },
                 case tags {
                   [] -> element.none()
-                  _ ->
-                    html.ul(
-                      [attribute.class("c-post-card__tags")],
-                      list.map(tags, fn(tag) {
-                        html.li([attribute.class("c-post-card__tag")], [
-                          element.text(tag),
-                        ])
-                      }),
-                    )
+                  _ -> layout.tag_list(tags)
                 },
               ]),
             ])

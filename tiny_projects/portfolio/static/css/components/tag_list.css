@@ -1,0 +1,20 @@
+.c-tag-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.c-tag {
+  list-style: none;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--pico-primary) 12%, transparent);
+  color: var(--pico-primary);
+  border: 1px solid color-mix(in oklab, var(--pico-primary) 25%, transparent);
+}
+

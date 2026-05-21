@@ -9,9 +9,6 @@
   list-style: none;
 }
 
-.c-post-card__tags .c-post-card__tag {
-  list-style: none;
-}
 
 .c-post-list__title {
   font-family: var(--font-mono);
@@ -43,21 +40,4 @@
   color: var(--pico-muted-color);
   font-size: 0.95rem;
   margin-bottom: 0.4rem;
-}
-
-.c-post-card__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.c-post-card__tag {
-  border: 1px solid var(--pico-muted-border-color);
-  border-radius: 4px;
-  padding: 0.1rem 0.5rem;
-  font-size: 0.8rem;
-  color: var(--pico-muted-color);
 }

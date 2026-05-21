@@ -42,15 +42,6 @@ fn hero() -> Element(Nil) {
     html.div([attr.class("c-home-hero__overlay")], [
       html.article([attr.class("c-home-hero__card")], [
         html.h1([], [element.text("Jack Glass")]),
-        html.div([attr.class("c-home-hero__actions")], [
-          html.a([attr.href("/blog/")], [element.text("Blog")]),
-          html.a(
-            [
-              attr.href("https://github.com/jackadrianglass"),
-            ],
-            [element.text("GitHub")],
-          ),
-        ]),
       ]),
     ]),
   ])
@@ -58,9 +49,8 @@ fn hero() -> Element(Nil) {
 
 fn about() -> Element(Nil) {
   html.section([attr.class("c-card-section")], [
-    html.h2([], [element.text("About")]),
 
-    html.div([attr.style("display", "flex")], [
+    html.div([attr.style("display", "flex"), attr.style("align-children", "center")], [
       html.img([
         attr.class("c-headshot"),
         attr.src("images/headshot.jpg"),
@@ -68,6 +58,7 @@ fn about() -> Element(Nil) {
       ]),
 
       html.div([], [
+      html.h2([], [element.text("About")]),
       html.p([], [
         element.text(
           "I'm a Canadian programmer with a love for learning, novel programming languages, and well designed software. One could say that I'm trying to live up to \"Jack of all trades, master of none but often better than master of one\". I love programming, weight lifting, biking, playing drums and the guitar, and everything else.",
@@ -107,17 +98,17 @@ fn latest_posts(posts: List(Post(Nil))) -> Element(Nil) {
           html.ul(
             [attr.class("c-post-list")],
             list.map(posts, fn(post) {
-              html.li([attr.class("c-post-list__item")], [
+              html.li([attr.class("c-post-card")], [
                 html.a(
                   [
                     attr.href("/blog/" <> post.slug <> "/"),
-                    attr.class("c-home-latest-posts__title"),
+                    attr.class("c-post-card__title"),
                   ],
                   [
                     element.text(post.title),
                   ],
                 ),
-                html.p([attr.class("c-post-list__description")], [
+                html.p([attr.class("c-post-card__tldr")], [
                   element.text(post.description),
                 ]),
               ])
