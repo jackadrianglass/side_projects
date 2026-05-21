@@ -1,9 +1,0 @@
-.page-blog-post {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-}
-
-.page-blog-post .l-content {
-  flex: 1;
-}

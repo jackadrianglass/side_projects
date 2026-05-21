@@ -1,0 +1,15 @@
+.c-headshot {
+  order: 1;
+  margin-left: auto;
+  width: 15rem;
+  height: 15rem;
+  border-radius: 1rem;
+}
+
+/* todo: ensure that this works with small screens */
+@media (max-width: 768px) {
+  .c-home-headshot {
+    order: 0;
+    margin-left: 0;
+  }
+}

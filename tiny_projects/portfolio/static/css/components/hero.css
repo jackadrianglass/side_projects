@@ -35,13 +35,6 @@
   font-size: clamp(2rem, 5vw, 2.75rem);
 }
 
-.c-home-hero__lead {
-  margin-top: 0.75rem;
-  margin-bottom: 0;
-  font-family: var(--font-mono);
-  font-size: 0.95rem;
-}
-
 .c-home-hero__actions {
   margin-top: 1rem;
   display: inline-flex;
