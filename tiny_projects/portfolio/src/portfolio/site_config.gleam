@@ -10,6 +10,7 @@ import lustre/element/html
 import portfolio/pages/blog_index_page
 import portfolio/pages/blog_post_page
 import portfolio/pages/home_page
+import portfolio/pages/projects_index_page
 import portfolio/pages/resume_page
 import smalto/lustre/themes
 
@@ -70,6 +71,7 @@ pub fn config() -> config.Config(Nil) {
   |> config.markdown(md_config)
   |> config.route("/", home_page.view)
   |> config.route("/blog/", blog_index_page.view)
+  |> config.route("/projects/", projects_index_page.view)
   |> config.route("/cv/", resume_page.view)
   |> config.feed(rss)
   |> config.sitemap(sitemap_config)

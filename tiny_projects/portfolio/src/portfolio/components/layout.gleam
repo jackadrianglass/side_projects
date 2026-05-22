@@ -1,5 +1,8 @@
 import blogatto/post.{type Post}
+import gleam/dict
 import gleam/list
+import gleam/option
+import gleam/string
 import gleam/time/timestamp
 import lustre/attribute
 import lustre/element.{type Element}
@@ -9,9 +12,16 @@ pub fn top_nav(
   posts: List(Post(Nil)),
   breadcrumb_items: List(Element(Nil)),
 ) -> Element(Nil) {
-  let recent =
-    posts
-    |> list.sort(fn(a, b) { timestamp.compare(b.date, a.date) })
+  let sorted = list.sort(posts, fn(a, b) { timestamp.compare(b.date, a.date) })
+
+  let recent_blog =
+    sorted
+    |> list.filter(fn(p) { !is_project_post(p) })
+    |> list.take(3)
+
+  let recent_projects =
+    sorted
+    |> list.filter(is_project_post)
     |> list.take(3)
 
   html.nav([attribute.class("c-site-nav")], [
@@ -29,6 +39,7 @@ pub fn top_nav(
     ]),
     html.nav([attribute.class("c-site-nav__links")], [
       html.a([attribute.href("/blog/")], [element.text("Blog")]),
+      html.a([attribute.href("/projects/")], [element.text("Projects")]),
       html.a([attribute.href("/cv/")], [element.text("CV")]),
     ]),
     html.div(
@@ -36,7 +47,7 @@ pub fn top_nav(
         attribute.id("site-tree-dropdown"),
         attribute.class("c-site-nav__tree-dropdown"),
       ],
-      [tree_pre(recent)],
+      [tree_pre(recent_blog, recent_projects)],
     ),
   ])
 }
@@ -87,6 +98,61 @@ pub fn page_head(title: String) -> List(Element(Nil)) {
   ]
 }
 
+/// Parse a raw YAML array string into a list of tag strings.
+/// e.g. "[\"banana\", \"pancakes\"]" -> ["banana", "pancakes"]
+pub fn parse_tags(raw: String) -> List(String) {
+  raw
+  |> string.drop_start(1)
+  |> string.drop_end(1)
+  |> string.split(",")
+  |> list.map(fn(token) {
+    token
+    |> string.trim
+    |> string.drop_start(1)
+    |> string.drop_end(1)
+  })
+  |> list.filter(fn(t) { t != "" })
+}
+
+/// Returns True if the post has type: project in its frontmatter.
+pub fn is_project_post(p: Post(Nil)) -> Bool {
+  dict.get(p.extras, "type") == Ok("project")
+}
+
+/// Renders a single post card for use in index/list pages.
+pub fn post_card(p: Post(Nil)) -> Element(Nil) {
+  let tldr =
+    dict.get(p.extras, "tldr")
+    |> option.from_result
+
+  let tags =
+    dict.get(p.extras, "tags")
+    |> option.from_result
+    |> option.map(parse_tags)
+    |> option.unwrap([])
+
+  html.li([attribute.class("c-post-list__item")], [
+    html.article([attribute.class("c-post-card")], [
+      html.a(
+        [
+          attribute.href("/blog/" <> p.slug <> "/"),
+          attribute.class("c-post-card__title"),
+        ],
+        [element.text(p.title)],
+      ),
+      case tldr {
+        option.Some(t) ->
+          html.p([attribute.class("c-post-card__tldr")], [element.text(t)])
+        option.None -> element.none()
+      },
+      case tags {
+        [] -> element.none()
+        _ -> tag_list(tags)
+      },
+    ]),
+  ])
+}
+
 pub fn tag_list(tags: List(String)) -> Element(Nil) {
   html.ul(
     [attribute.class("c-tag-list")],
@@ -120,8 +186,8 @@ fn tree_icon() -> Element(Nil) {
     "svg",
     [
       attribute.attribute("viewBox", "0 0 24 24"),
-      attribute.attribute("width", "16"),
-      attribute.attribute("height", "16"),
+      attribute.attribute("width", "18"),
+      attribute.attribute("height", "18"),
       attribute.attribute("fill", "none"),
       attribute.attribute("stroke", "currentColor"),
       attribute.attribute("stroke-width", "2"),
@@ -133,41 +199,41 @@ fn tree_icon() -> Element(Nil) {
       element.element(
         "line",
         [
-          attribute.attribute("x1", "6"),
-          attribute.attribute("y1", "3"),
-          attribute.attribute("x2", "6"),
-          attribute.attribute("y2", "15"),
+          attribute.attribute("x1", "3"),
+          attribute.attribute("y1", "6"),
+          attribute.attribute("x2", "21"),
+          attribute.attribute("y2", "6"),
         ],
         [],
       ),
       element.element(
-        "circle",
+        "line",
         [
-          attribute.attribute("cx", "18"),
-          attribute.attribute("cy", "6"),
-          attribute.attribute("r", "3"),
+          attribute.attribute("x1", "3"),
+          attribute.attribute("y1", "12"),
+          attribute.attribute("x2", "21"),
+          attribute.attribute("y2", "12"),
         ],
         [],
       ),
       element.element(
-        "circle",
+        "line",
         [
-          attribute.attribute("cx", "6"),
-          attribute.attribute("cy", "18"),
-          attribute.attribute("r", "3"),
+          attribute.attribute("x1", "3"),
+          attribute.attribute("y1", "18"),
+          attribute.attribute("x2", "21"),
+          attribute.attribute("y2", "18"),
         ],
-        [],
-      ),
-      element.element(
-        "path",
-        [attribute.attribute("d", "M18 9a9 9 0 0 1-9 9")],
         [],
       ),
     ],
   )
 }
 
-fn tree_pre(posts: List(Post(Nil))) -> Element(Nil) {
+fn tree_pre(
+  blog_posts: List(Post(Nil)),
+  project_posts: List(Post(Nil)),
+) -> Element(Nil) {
   html.pre(
     [attribute.class("c-site-tree")],
     list.flatten([
@@ -186,7 +252,19 @@ fn tree_pre(posts: List(Post(Nil))) -> Element(Nil) {
         ),
         element.text("\n"),
       ],
-      tree_post_items(posts),
+      tree_post_items(blog_posts),
+      [
+        element.text("├── "),
+        html.a(
+          [
+            attribute.href("/projects/"),
+            attribute.title("Side project updates"),
+          ],
+          [element.text("projects/")],
+        ),
+        element.text("\n"),
+      ],
+      tree_post_items(project_posts),
       [
         element.text("└── "),
         html.a(
