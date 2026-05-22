@@ -24,7 +24,7 @@ root
     portfolio.gleam         <- static build entrypoint (uses `site_config.config()`)
     portfolio_dev.gleam     <- dev server entrypoint (uses `site_config.config()`)
   static/                   <- static assets that get copied to dist/
-    css/                    <- custom styling
+    css/                    <- custom styling using a primitive itcss organization style
     images/                 <- image assets. ignore
     js/                     <- dynamic page logic in js
   README.md

@@ -1,6 +1,4 @@
 import blogatto/post.{type Post}
-import gleam/list
-import gleam/time/timestamp
 import lustre/attribute as attr
 import lustre/element.{type Element}
 import lustre/element/html
@@ -10,13 +8,12 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
   html.html([attr.lang("en")], [
     html.head([], layout.page_head("Home")),
     html.body([attr.class("page-home")], [
-      layout.top_nav([
+      layout.top_nav(posts, [
         html.li([], [html.a([attr.href("/")], [element.text("~")])]),
       ]),
       html.main([], [
         hero(),
         about(),
-        latest_posts(posts),
       ]),
       layout.page_footer(),
       html.script(
@@ -75,46 +72,3 @@ fn about() -> Element(Nil) {
   ])
 }
 
-fn latest_posts(posts: List(Post(Nil))) -> Element(Nil) {
-  let latest_posts =
-    posts
-    |> list.sort(fn(a, b) { timestamp.compare(b.date, a.date) })
-    |> list.take(3)
-
-  html.section(
-    [
-      attr.class("c-card-section"),
-    ],
-    [
-      html.h2([], [element.text("Latest Blog Posts")]),
-      case latest_posts {
-        [] ->
-          html.p([attr.class("c-home-latest-posts__empty")], [
-            element.text(
-              "Huh... I guess I haven't written anything yet. Stayed tuned!",
-            ),
-          ])
-        _ ->
-          html.ul(
-            [attr.class("c-post-list")],
-            list.map(posts, fn(post) {
-              html.li([attr.class("c-post-card")], [
-                html.a(
-                  [
-                    attr.href("/blog/" <> post.slug <> "/"),
-                    attr.class("c-post-card__title"),
-                  ],
-                  [
-                    element.text(post.title),
-                  ],
-                ),
-                html.p([attr.class("c-post-card__tldr")], [
-                  element.text(post.description),
-                ]),
-              ])
-            }),
-          )
-      },
-    ],
-  )
-}

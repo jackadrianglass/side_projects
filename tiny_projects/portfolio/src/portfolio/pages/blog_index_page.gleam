@@ -19,7 +19,7 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
   html.html([attribute.lang("en")], [
     html.head([], layout.page_head("Simple Blog")),
     html.body([attribute.class("page-blog-index")], [
-      layout.top_nav([
+      layout.top_nav(posts, [
         html.li([], [html.a([attribute.href("/")], [element.text("~")])]),
         html.li([], [element.text("/")]),
         html.li([], [html.strong([], [element.text("blog")])]),

@@ -8,7 +8,7 @@ import portfolio/components/layout
 
 /// Blog post template: renders a full HTML page for a single blog post
 /// with a navigation link back to the homepage.
-pub fn template(p: Post(Nil), _all_posts: List(Post(Nil))) -> Element(Nil) {
+pub fn template(p: Post(Nil), all_posts: List(Post(Nil))) -> Element(Nil) {
   let lang = option.unwrap(p.language, "en")
 
   html.html([attribute.lang(lang)], [
@@ -22,7 +22,7 @@ pub fn template(p: Post(Nil), _all_posts: List(Post(Nil))) -> Element(Nil) {
       ]),
     ),
     html.body([attribute.class("page-blog-post")], [
-      layout.top_nav([
+      layout.top_nav(all_posts, [
         html.li([], [html.a([attribute.href("/")], [element.text("~")])]),
         html.li([], [element.text("/")]),
         html.li([], [html.a([attribute.href("/blog/")], [element.text("blog")])]),
