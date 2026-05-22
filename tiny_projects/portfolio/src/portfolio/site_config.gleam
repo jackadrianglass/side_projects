@@ -26,7 +26,7 @@ pub fn config() -> config.Config(Nil) {
   let md_config =
     markdown.default()
     |> markdown.markdown_path("./blog")
-    |> markdown.route_prefix("blog")
+    |> markdown.route_prefix("pages")
     |> markdown.template(blog_post_page.template)
     |> markdown.syntax_highlighting(syntax_config)
     |> markdown.pre(fn(children) {

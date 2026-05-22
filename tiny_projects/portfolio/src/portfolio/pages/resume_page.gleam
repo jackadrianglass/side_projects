@@ -4,6 +4,8 @@ import lustre/attribute as attr
 import lustre/element.{type Element}
 import lustre/element/html
 import portfolio/components/layout
+import portfolio/components/nav
+import portfolio/components/post_card
 
 type Entry {
   Entry(
@@ -47,7 +49,7 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
   html.html([attr.lang("en")], [
     html.head([], layout.page_head("CV")),
     html.body([], [
-      layout.top_nav(posts, [
+      nav.top_nav(posts, [
         html.li([], [html.a([attr.href("/")], [element.text("~")])]),
         html.li([], [element.text("/")]),
         html.li([], [html.a([attr.href("/cv/")], [element.text("CV")])]),
@@ -87,7 +89,7 @@ fn timeline_entry(entry: Entry) -> Element(Nil) {
       html.p([attr.class("c-timeline__description")], [
         element.text(entry.description),
       ]),
-      layout.tag_list(entry.tags),
+      post_card.tag_list(entry.tags),
     ]),
   ])
 }

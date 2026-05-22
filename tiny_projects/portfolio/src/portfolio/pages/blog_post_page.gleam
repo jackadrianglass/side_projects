@@ -5,6 +5,8 @@ import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
 import portfolio/components/layout
+import portfolio/components/nav
+import portfolio/components/post_card
 
 /// Blog post template: renders a full HTML page for a single blog post
 /// with a navigation link back to the homepage.
@@ -22,13 +24,21 @@ pub fn template(p: Post(Nil), all_posts: List(Post(Nil))) -> Element(Nil) {
       ]),
     ),
     html.body([attribute.class("page-blog-post")], [
-      layout.top_nav(all_posts, [
-        html.li([], [html.a([attribute.href("/")], [element.text("~")])]),
-        html.li([], [element.text("/")]),
-        html.li([], [html.a([attribute.href("/blog/")], [element.text("blog")])]),
-        html.li([], [element.text("/")]),
-        html.li([], [html.strong([], [element.text(p.slug)])]),
-      ]),
+      nav.top_nav(all_posts, {
+        let #(section_href, section_label) = case post_card.is_project_post(p) {
+          True -> #("/projects/", "projects")
+          False -> #("/blog/", "blog")
+        }
+        [
+          html.li([], [html.a([attribute.href("/")], [element.text("~")])]),
+          html.li([], [element.text("/")]),
+          html.li([], [
+            html.a([attribute.href(section_href)], [element.text(section_label)]),
+          ]),
+          html.li([], [element.text("/")]),
+          html.li([], [html.strong([], [element.text(p.slug)])]),
+        ]
+      }),
       html.main([attribute.class("l-content")], [
         html.article([attribute.class("c-post-content")], [
           html.h1([attribute.class("c-post-content__title")], [

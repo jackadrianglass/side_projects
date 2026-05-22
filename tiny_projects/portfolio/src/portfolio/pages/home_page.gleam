@@ -3,12 +3,13 @@ import lustre/attribute as attr
 import lustre/element.{type Element}
 import lustre/element/html
 import portfolio/components/layout
+import portfolio/components/nav
 
 pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
   html.html([attr.lang("en")], [
     html.head([], layout.page_head("Home")),
     html.body([attr.class("page-home")], [
-      layout.top_nav(posts, [
+      nav.top_nav(posts, [
         html.li([], [html.a([attr.href("/")], [element.text("~")])]),
       ]),
       html.main([], [
