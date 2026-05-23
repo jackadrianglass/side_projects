@@ -20,28 +20,44 @@ type Entry {
 
 const entries = [
   Entry(
-    title: "Senior Software Engineer",
-    company: "Acme Corporation",
-    company_url: "https://example.com",
-    date_range: "Jan 2023 – Present",
-    description: "Led backend platform work for the core product, including a rewrite of the job scheduling system that reduced p99 latency by 40%. Mentored junior engineers and drove adoption of stronger type safety patterns across the team.",
-    tags: ["Rust", "PostgreSQL", "Kubernetes", "gRPC", "Terraform"],
+    title: "Platform Software Engineer",
+    company: "Biggeo",
+    company_url: "https://biggeo.com/",
+    date_range: "Jan 2025 – April 2026",
+    description: "todo",
+    tags: ["Rust", "Axum", "Sqlx", "PostgreSQL", "Duckdb", "Apache Arrow", "Kubernetes", "C++", "Nix", "Docker"],
   ),
   Entry(
     title: "Software Engineer",
-    company: "Widget Inc",
-    company_url: "https://example.com",
-    date_range: "Mar 2020 – Dec 2022",
-    description: "Built and maintained data pipeline infrastructure processing millions of events per day. Introduced property-based testing to the team and improved code coverage from 42% to 80% over six months.",
-    tags: ["Python", "Apache Kafka", "Redis", "AWS", "Docker"],
+    company: "Lockheed Martin Canada - Skunkworks",
+    company_url: "https://www.lockheedmartin.com/en-ca/index.html",
+    date_range: "?? 2022 – Dec 2024",
+    description: "todo",
+    tags: ["C++", "Qt", "QML", "Python", "Waf", "Bazel"],
   ),
   Entry(
-    title: "Junior Developer",
-    company: "StartupCo",
-    company_url: "https://example.com",
-    date_range: "Jun 2018 – Feb 2020",
-    description: "Full-stack feature development on a SaaS platform. Owned the notification system end-to-end and integrated a third-party payment provider with zero downtime during the migration.",
-    tags: ["TypeScript", "React", "Node.js", "MySQL", "Stripe"],
+    title: "Junior Software Engineer",
+    company: "Garmin Canada",
+    company_url: "https://www.garmin.com/en-CA/",
+    date_range: "Jun 2018 – ?? 2022",
+    description: "todo",
+    tags: ["C", "C++", "Nordic NRF52", "BLE", "ANT", "Python", "Pandas", "Microsoft HPC", "PostgreSQL"],
+  ),
+  Entry(
+    title: "Software Engineering Intern",
+    company: "Garmin Canada",
+    company_url: "https://www.garmin.com/en-CA/",
+    date_range: "Jun 2018 – ?? 2022",
+    description: "todo",
+    tags: ["C", "C++", "Nordic NRF52", "BLE", "ANT", "Python", "C#"],
+  ),
+  Entry(
+    title: "Software Engineering Summer Student",
+    company: "Garmin Canada",
+    company_url: "https://www.garmin.com/en-CA/",
+    date_range: "Jun 2018 – ?? 2022",
+    description: "todo",
+    tags: ["C", "Nordic NRF52", "BLE", "ANT", "Python", "C#"],
   ),
 ]
 
@@ -62,7 +78,7 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
 
 fn timeline() -> Element(Nil) {
   html.section([attr.class("c-card-section")], [
-    html.h2([], [element.text("Experience")]),
+    html.h2([], [element.text("Work Experience")]),
     html.ol(
       [attr.class("c-timeline")],
       list.map(entries, timeline_entry),
