@@ -54,7 +54,7 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
         html.li([], [element.text("/")]),
         html.li([], [html.a([attr.href("/cv/")], [element.text("CV")])]),
       ]),
-      html.main([], [timeline()]),
+      html.main([attr.class("l-content")], [timeline()]),
       layout.page_footer(),
     ]),
   ])

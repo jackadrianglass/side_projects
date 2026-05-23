@@ -22,9 +22,9 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
         html.li([], [element.text("/")]),
         html.li([], [html.strong([], [element.text("projects")])]),
       ]),
-      html.main([], [
+      html.main([attribute.class("l-content")], [
         html.h1([], [element.text("Projects")]),
-        html.p([], [element.text("Updates and notes on side projects.")]),
+        html.p([], [element.text("In case you're curious as to what I'm working on at the moment, this is a running log of the side projects that I'm working on. They'll be a source of the blog posts, and where I'll be learning more about how computers work.")]),
         html.h2([attribute.class("c-post-list__heading")], [
           element.text("Updates"),
         ]),

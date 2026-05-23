@@ -1,6 +1,8 @@
 .l-content {
-  width: min(70rem, 100%);
-  padding: 1rem;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
 }
 
 .l-screen-fill {
