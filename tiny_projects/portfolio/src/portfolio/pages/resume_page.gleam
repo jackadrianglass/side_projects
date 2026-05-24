@@ -19,6 +19,10 @@ type Entry {
   )
 }
 
+type SkillGroup {
+  SkillGroup(category: String, skills: List(String))
+}
+
 const entries = [
   Entry(
     title: "Platform Software Engineer",
@@ -87,7 +91,7 @@ const entries = [
     title: "Software Engineering Intern",
     company: "Garmin Canada",
     company_url: "https://www.garmin.com/en-CA/",
-    date_range: "Jun 2018 – ?? 2022",
+    date_range: "May 2019 – Aug 2020",
     description: "Worked on the sensor products team on a bike pedal product to measure many aspects of a bike ride",
     projects: [
       "Refactored bluetooth stack to improve mobile connection reliability and data throughput up to 10x using C on a Nordic microcontroller",
@@ -100,7 +104,7 @@ const entries = [
     title: "Software Engineering Summer Student",
     company: "Garmin Canada",
     company_url: "https://www.garmin.com/en-CA/",
-    date_range: "Jun 2018 – ?? 2022",
+    date_range: "May 2018 – Aug 2018",
     description: "Worked on the connectivity team to improve the BLE stack for low power sensors",
     projects: [
       "Maintained a small FIT file visualization tool for developers",
@@ -108,6 +112,25 @@ const entries = [
       "Performed BLE compliance tests and fixed issues as they arose",
     ],
     tags: ["C", "Nordic NRF52", "GCOV", "BLE", "ANT", "Python", "C#"],
+  ),
+]
+
+const skill_groups: List(SkillGroup) = [
+  SkillGroup(
+    category: "Systems & Performance",
+    skills: ["Rust", "C", "C++", "DuckDB", "Apache Arrow", "PostgreSQL"],
+  ),
+  SkillGroup(
+    category: "Embedded & Desktop",
+    skills: ["C", "C++", "Qt", "QML", "Nordic NRF52", "BLE", "ANT"],
+  ),
+  SkillGroup(
+    category: "Infrastructure & Tooling",
+    skills: ["Docker", "Kubernetes", "Nix", "Bazel", "Python"],
+  ),
+  SkillGroup(
+    category: "Graphics & Creative Coding (Learning)",
+    skills: ["wgpu", "nannou"],
   ),
 ]
 
@@ -120,14 +143,69 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
         html.li([], [element.text("/")]),
         html.li([], [html.a([attr.href("/cv/")], [element.text("CV")])]),
       ]),
-      html.main([attr.class("l-content")], [timeline()]),
+      html.main([attr.class("l-content")], [
+        summary_section(),
+        timeline(),
+        education_section(),
+        contact_section(),
+      ]),
       layout.page_footer(),
     ]),
   ])
 }
 
+fn summary_section() -> Element(Nil) {
+  html.section([attr.id("summary"), attr.class("c-card-section")], [
+    html.h2([], [element.text("Summary")]),
+    html.p([], [
+      element.text(
+        "I build software where the machine matters. My career has spanned embedded sensors, desktop GCS applications, and high-throughput cloud data systems — the common thread being that the interesting problems were always about using resources well and mistakes have real consequences.",
+      ),
+    ]),
+    html.p([], [
+      element.text(
+        "Currently working in Rust, exploring graphics programming with wgpu, and exploring programming languages that provide layers of reliability ergonomically. I'm looking for roles where performance is a genuine constraint, not an afterthought.",
+      ),
+    ]),
+    html.a(
+      [
+        attr.href("/files/2026-jack-glass-resume.pdf"),
+        attr.class("c-button"),
+        attr.attribute("download", ""),
+      ],
+      [element.text("Download Resume (PDF)")],
+    ),
+    html.h3([], [html.text("Skills at a glance")]),
+    html.div([], list.map(skill_groups, skill_group)),
+  ])
+}
+
+fn skill_group(group: SkillGroup) -> Element(Nil) {
+  html.div([], [
+    html.h5([], [
+      element.text(group.category),
+    ]),
+    post_card.tag_list(group.skills),
+  ])
+}
+
+fn education_section() -> Element(Nil) {
+  html.section([attr.id("education"), attr.class("c-card-section")], [
+    html.h2([], [element.text("Education")]),
+    html.h3([], [
+      element.text("B.Sc. Software Engineering"),
+    ]),
+    html.i([], [
+      element.text("University of Calgary - 2021"),
+    ]),
+    html.p([], [
+      element.text("Graduated with distinction. Took courses in graphics, compilers, distributed systems, and machine learning amongst others."),
+    ]),
+  ])
+}
+
 fn timeline() -> Element(Nil) {
-  html.section([attr.class("c-card-section")], [
+  html.section([attr.id("experience"), attr.class("c-card-section")], [
     html.h2([], [element.text("Work Experience")]),
     html.ol([attr.class("c-timeline")], list.map(entries, timeline_entry)),
   ])
@@ -167,4 +245,18 @@ fn project_list(projects: List(String)) -> Element(Nil) {
         list.map(projects, fn(p) { html.li([], [element.text(p)]) }),
       )
   }
+}
+
+fn contact_section() -> Element(Nil) {
+  html.section([attr.id("contact"), attr.class("c-card-section")], [
+    html.h2([], [element.text("Contact")]),
+    html.p([], [
+      element.text(
+        "Interested in working with me? Send me an email or find me in person at the Calgary software meetups",
+      ),
+    ]),
+    html.a([attr.href("mailto:jack.glass.contact@proton.me")], [
+      element.text("Send to: jack.glass.contact@proton.me"),
+    ]),
+  ])
 }

@@ -11,15 +11,22 @@ tags: ["gleam", "p5.js", "pico.css"]
 - [ ] Link tree on nav bar instead of basic navigation (top right)
 - [ ] First blog post
 - [ ] CI/CD deployments of the website
-- [ ] Fill out your job history on the CV page
 - [ ] Simplify the footer of the website
+- [ ] Deploy it! Do it live
+- [ ] Working status of the project + link if there is one
 
 # Log
 
+## 2026-05-24
+
+- [x] Fill out your job history on the CV page
+
+First pass on the resume page. Writing all the descriptions is harder than I expect every time. I'm not terribly happy with the result but at least it's something.
+
 ## 2026-05-23
 
-- [ ] Fill out blog index description and side project description
-- [ ] Change the max width of all the layouts
+- [x] Fill out blog index description and side project description
+- [x] Change the max width of all the layouts
 
 Looking at the layout too. It seems too wide for the viewport and kind of looks weird. I'd like to see how to make it look a little more like how Obsidian looks.
 

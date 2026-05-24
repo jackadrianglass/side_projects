@@ -6,6 +6,40 @@ import lustre/element.{type Element}
 import lustre/element/html
 import portfolio/components/post_card
 
+pub type TreeNode {
+  TreeNode(label: String, href: String, children: List(TreeNode))
+}
+
+pub fn tree(label: String, href: String, nodes: List(TreeNode)) -> Element(Nil) {
+  let root = html.a([attribute.href(href)], [element.text(label)])
+  html.pre(
+    [attribute.class("c-site-tree")],
+    list.flatten([[root, element.text("\n")], render_nodes(nodes, "")]),
+  )
+}
+
+fn render_nodes(nodes: List(TreeNode), indent: String) -> List(Element(Nil)) {
+  let count = list.length(nodes)
+  nodes
+  |> list.index_map(fn(node, i) {
+    let is_last = i == count - 1
+    let prefix = case is_last {
+      True -> indent <> "└── "
+      False -> indent <> "├── "
+    }
+    let child_indent = case is_last {
+      True -> indent <> "    "
+      False -> indent <> "│   "
+    }
+    let link = html.a([attribute.href(node.href)], [element.text(node.label)])
+    list.flatten([
+      [element.text(prefix), link, element.text("\n")],
+      render_nodes(node.children, child_indent),
+    ])
+  })
+  |> list.flatten
+}
+
 pub fn top_nav(
   posts: List(Post(Nil)),
   breadcrumb_items: List(Element(Nil)),
@@ -103,70 +137,12 @@ fn tree_pre(
   blog_posts: List(Post(Nil)),
   project_posts: List(Post(Nil)),
 ) -> Element(Nil) {
-  html.pre(
-    [attribute.class("c-site-tree")],
-    list.flatten([
-      [
-        html.a(
-          [attribute.href("/"), attribute.title("Home page")],
-          [element.text("~")],
-        ),
-        element.text("\n"),
-      ],
-      [
-        element.text("├── "),
-        html.a(
-          [attribute.href("/blog/"), attribute.title("Browse all posts")],
-          [element.text("blog/")],
-        ),
-        element.text("\n"),
-      ],
-      tree_post_items(blog_posts, "/pages/"),
-      [
-        element.text("├── "),
-        html.a(
-          [
-            attribute.href("/projects/"),
-            attribute.title("Side project updates"),
-          ],
-          [element.text("projects/")],
-        ),
-        element.text("\n"),
-      ],
-      tree_post_items(project_posts, "/pages/"),
-      [
-        element.text("└── "),
-        html.a(
-          [attribute.href("/cv/"), attribute.title("CV and work history")],
-          [element.text("cv")],
-        ),
-      ],
-    ]),
-  )
-}
-
-fn tree_post_items(
-  posts: List(Post(Nil)),
-  base_path: String,
-) -> List(Element(Nil)) {
-  let n = list.length(posts)
-  posts
-  |> list.index_map(fn(post, i) {
-    let prefix = case i == n - 1 {
-      True -> "│   └── "
-      False -> "│   ├── "
-    }
-    [
-      element.text(prefix),
-      html.a(
-        [
-          attribute.href(base_path <> post.slug <> "/"),
-          attribute.title(post.description),
-        ],
-        [element.text(post.title)],
-      ),
-      element.text("\n"),
-    ]
-  })
-  |> list.flatten
+  let post_node = fn(p: Post(Nil)) {
+    TreeNode(p.title, "/pages/" <> p.slug <> "/", [])
+  }
+  tree("~", "/", [
+    TreeNode("blog/", "/blog/", list.map(blog_posts, post_node)),
+    TreeNode("projects/", "/projects/", list.map(project_posts, post_node)),
+    TreeNode("cv", "/cv/", []),
+  ])
 }
