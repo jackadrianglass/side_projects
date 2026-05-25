@@ -34,9 +34,10 @@
   line-height: 1;
 }
 
-.c-site-nav__links {
+.c-social-links {
   display: flex;
-  gap: 1rem;
+  gap: 0.25rem;
+  align-items: center;
   margin: 0;
   padding: 0;
 }
@@ -53,10 +54,20 @@
   margin: 0;
 }
 
-.c-site-nav__links a {
-  font-size: 0.875rem;
+.c-social-links a {
+  display: flex;
+  align-items: center;
   color: var(--pico-muted-color);
   text-decoration: none;
+  line-height: 0;
+  padding: 0.2rem;
+  border-radius: 4px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.c-social-links a:hover {
+  color: var(--pico-color);
+  background-color: var(--pico-muted-border-color);
 }
 
 .c-site-nav__tree-btn {

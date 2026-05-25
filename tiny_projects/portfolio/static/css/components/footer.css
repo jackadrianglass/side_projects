@@ -18,18 +18,20 @@
 
 .c-site-footer__sep {
   font-size: 0.85rem;
-  color: var(--pico-muted-border-color);
+  color: var(--pico-muted-color);
 }
 
-.c-site-footer__links {
-  display: flex;
-  gap: 1.5rem;
-  margin: 0;
-  padding: 0;
-}
-
-.c-site-footer__links a {
+.c-site-footer__built-with {
   font-size: 0.85rem;
   color: var(--pico-muted-color);
   text-decoration: none;
 }
+
+.c-site-footer__built-with:hover {
+  color: var(--pico-color);
+}
+
+.c-site-footer__inner .c-social-links {
+  margin-left: auto;
+}
+

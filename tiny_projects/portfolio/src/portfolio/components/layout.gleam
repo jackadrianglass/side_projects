@@ -1,6 +1,10 @@
+import gleam/int
+import gleam/time/calendar
+import gleam/time/timestamp
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
+import portfolio/components/nav
 
 pub fn page_head(title: String) -> List(Element(Nil)) {
   [
@@ -49,20 +53,27 @@ pub fn page_head(title: String) -> List(Element(Nil)) {
 }
 
 pub fn page_footer() -> Element(Nil) {
+  let #(date, _) =
+    timestamp.system_time() |> timestamp.to_calendar(calendar.utc_offset)
+  let year = int.to_string(date.year)
   html.footer([attribute.class("c-site-footer")], [
     html.div([attribute.class("c-site-footer__inner")], [
       html.span([attribute.class("c-site-footer__name")], [
-        element.text("Jack Glass"),
+        element.text("Jack Glass - " <> year),
       ]),
       html.span([attribute.class("c-site-footer__sep")], [
         element.text("|"),
       ]),
-      html.nav([attribute.class("c-site-footer__links")], [
-        html.a([attribute.href("https://github.com/jackadrianglass")], [
-          element.text("GitHub"),
-        ]),
-        html.a([attribute.href("/blog/")], [element.text("Blog")]),
-      ]),
+      html.a(
+        [
+          attribute.href("https://github.com/veeso/blogatto"),
+          attribute.class("c-site-footer__built-with"),
+          attribute.attribute("target", "_blank"),
+          attribute.attribute("rel", "noopener noreferrer"),
+        ],
+        [element.text("Built with Blogatto")],
+      ),
+      nav.social_links(),
     ]),
   ])
 }

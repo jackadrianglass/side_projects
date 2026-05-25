@@ -8,14 +8,17 @@ tags: ["gleam", "p5.js", "pico.css"]
 
 # TODO
 
-- [ ] Link tree on nav bar instead of basic navigation (top right)
 - [ ] First blog post
 - [ ] CI/CD deployments of the website
-- [ ] Simplify the footer of the website
 - [ ] Deploy it! Do it live
 - [ ] Working status of the project + link if there is one
 
 # Log
+
+## 2026-05-25
+
+- [x] Simplify the footer of the website
+- [x] Link tree on nav bar instead of basic navigation (top right)
 
 ## 2026-05-24
 
