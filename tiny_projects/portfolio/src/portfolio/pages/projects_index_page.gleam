@@ -1,4 +1,5 @@
 import blogatto/post.{type Post}
+import gleam/dict
 import gleam/list
 import gleam/time/timestamp
 import lustre/attribute
@@ -14,6 +15,16 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
     |> list.filter(post_card.is_project_post)
     |> list.sort(fn(a, b) { timestamp.compare(b.date, a.date) })
 
+  let active_posts =
+    list.filter(project_posts, fn(p) {
+      dict.get(p.extras, "status") == Ok("active")
+    })
+
+  let finished_posts =
+    list.filter(project_posts, fn(p) {
+      dict.get(p.extras, "status") != Ok("active")
+    })
+
   html.html([attribute.lang("en")], [
     html.head([], layout.page_head("Projects")),
     html.body([attribute.class("page-projects-index")], [
@@ -26,14 +37,29 @@ pub fn view(posts: List(Post(Nil))) -> Element(Nil) {
         html.h1([], [element.text("Projects")]),
         html.p([], [element.text("In case you're curious as to what I'm working on at the moment, this is a running log of the side projects that I'm working on. They'll be a source of the blog posts, and where I'll be learning more about how computers work.")]),
         html.h2([attribute.class("c-post-list__heading")], [
-          element.text("Updates"),
+          element.text("Active"),
         ]),
-        html.ul(
-          [attribute.class("c-post-list")],
-          list.map(project_posts, post_card.post_card),
-        ),
+        project_section(active_posts),
+        html.h2([attribute.class("c-post-list__heading")], [
+          element.text("Finished & Abandoned"),
+        ]),
+        project_section(finished_posts),
       ]),
       layout.page_footer(),
     ]),
   ])
+}
+
+fn project_section(posts: List(Post(Nil))) -> Element(Nil) {
+  case posts {
+    [] ->
+      html.p([attribute.class("c-post-list__empty")], [
+        element.text("Nothing here yet"),
+      ])
+    _ ->
+      html.ul(
+        [attribute.class("c-post-list")],
+        list.map(posts, post_card.post_card),
+      )
+  }
 }

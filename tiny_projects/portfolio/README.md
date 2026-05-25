@@ -7,30 +7,6 @@ The idea is to largely base the website off of one that I found
 
 # Ideas
 
-## Landing page
-
-Creative landing spot
-- [ ] Accessibility options to disable creative coding stuff (disable)
-
-Should link out to the rest of the pages easily
-- [ ] Have a static nav bar between each section
-- [ ] Have some highlights of each (blogs, about, events)
-
-## Resume page
-
-Important to have a downloadable version of this too
-
-- [ ] Brief about
-- [ ] Work experience (history tree)
-    - Timelines
-    - Brief about
-    - Key tech
-    - Key roles
-- [ ] Volunteer experience
-    - SDC events
-    - Byte Club
-- [ ] Schooling
-
 ## Side project garden
 
 - [ ] List of each side project that you're working on sorted by recency
@@ -71,38 +47,6 @@ With any post
 
 Ideas around interaction/visuals
 - Any concept that can be explained visually should be explained visually
-
-# Main Page
-
-- [ ] Link Tree
-    - [ ] Each bubble should react when the user hovers over it
-- [ ] Work Experience
-    - [ ] Timeline view (which is just a stylized list)
-    - [ ] Link to every office that you've worked at
-    - [ ] Link to every project if there's a product link
-    - [ ] Garmin
-        - [ ] Summer Student (BLE team)
-        - [ ] Internship (fatcat, rally ble revamp)
-        - [ ] Full time (helios & spek)
-    - [ ] Lockheed Skunkworks
-        - [ ] Platform team
-        - [ ] Martian team
-        - [ ] Devops team
-    - [ ] Big Geo!!!
-    - Reverse chronological order
-- [ ] Side Projects
-    - [ ] Cards for each
-        - Gif demo of each or just a little picture (it would be sweet if the gif would play when you hover over it)
-        - Link to the github repo
-        - Little language styles at the bottom
-        - Description of what it is
-        - A little indicator whether it's a WIP
-    - [ ] Git repo needs to be split from the collection repos that you have
-    - [ ] Shout out byte club somewhere
-    - [ ] Include this website
-    - [ ] Beat generator CLI
-    - [ ] Creative coding stuff
-    - [ ] Some of your graphics stuff from university
 
 # Notes
 

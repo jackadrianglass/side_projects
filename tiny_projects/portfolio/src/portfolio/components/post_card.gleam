@@ -26,10 +26,6 @@ pub fn is_project_post(p: Post(Nil)) -> Bool {
 }
 
 pub fn post_card(p: Post(Nil)) -> Element(Nil) {
-  let tldr =
-    dict.get(p.extras, "tldr")
-    |> option.from_result
-
   let tags =
     dict.get(p.extras, "tags")
     |> option.from_result
@@ -45,11 +41,9 @@ pub fn post_card(p: Post(Nil)) -> Element(Nil) {
         ],
         [element.text(p.title)],
       ),
-      case tldr {
-        option.Some(t) ->
-          html.p([attribute.class("c-post-card__tldr")], [element.text(t)])
-        option.None -> element.none()
-      },
+      html.p([attribute.class("c-post-card__description")], [
+        element.text(p.description),
+      ]),
       case tags {
         [] -> element.none()
         _ -> tag_list(tags)

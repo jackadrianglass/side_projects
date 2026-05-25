@@ -1,4 +1,5 @@
 import blogatto/post.{type Post}
+import gleam/dict
 import gleam/list
 import gleam/option
 import lustre/attribute
@@ -47,6 +48,14 @@ pub fn template(p: Post(Nil), all_posts: List(Post(Nil))) -> Element(Nil) {
           html.p([attribute.class("c-post-content__description")], [
             html.em([], [element.text(p.description)]),
           ]),
+          case dict.get(p.extras, "repo") {
+            Ok(url) ->
+              html.p([attribute.class("c-post-content__repo")], [
+                element.text("Source code: "),
+                html.a([attribute.href(url)], [element.text(url)]),
+              ])
+            Error(_) -> element.none()
+          },
           html.div([attribute.class("c-post-content__body")], p.contents),
         ]),
       ]),

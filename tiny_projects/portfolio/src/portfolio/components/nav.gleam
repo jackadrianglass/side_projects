@@ -1,4 +1,5 @@
 import blogatto/post.{type Post}
+import gleam/dict
 import gleam/list
 import gleam/time/timestamp
 import lustre/attribute
@@ -54,6 +55,7 @@ pub fn top_nav(
   let recent_projects =
     sorted
     |> list.filter(post_card.is_project_post)
+    |> list.filter(fn(p) { dict.get(p.extras, "status") == Ok("active") })
     |> list.take(3)
 
   html.nav([attribute.class("c-site-nav")], [

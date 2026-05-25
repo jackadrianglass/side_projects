@@ -1,9 +1,11 @@
 ---
 type: project
+status: active
 title: Portfolio Website V1
 description: A little space to blog, show off my hobbies, and write into the void of the internet
 date: 2026-05-22 00:00:00
 tags: ["gleam", "p5.js", "pico.css"]
+repo: "https://github.com/jackadrianglass/jackadrianglass.github.io"
 ---
 
 # TODO
@@ -11,12 +13,13 @@ tags: ["gleam", "p5.js", "pico.css"]
 - [ ] First blog post
 - [ ] CI/CD deployments of the website
 - [ ] Deploy it! Do it live
-- [ ] Working status of the project + link if there is one
 
 # Log
 
 ## 2026-05-25
 
+- [x] Add more content to the home page. It looks a little bare
+- [x] Working status of the project + link if there is one
 - [x] Simplify the footer of the website
 - [x] Link tree on nav bar instead of basic navigation (top right)
 
