@@ -8,7 +8,7 @@ Doing each day in a different language
 - [x] Day 4: Crystal
 - [x] Day 5: Scala
 - [x] Day 6: Clojure
-- [ ] Day 7: Gleam
+- [x] Day 7: Gleam
 - [ ] Day 8: Idris
 - [ ] Day 9: Kotlin
 - [ ] Day 10: Swift
@@ -114,5 +114,14 @@ Cons:
 
 # Gleam
 
+Honestly, I don't find myself enjoying much about this language. It's nice to have the pizza operators but seems needlessly small and few features. I don't really care about the beam VM or the language enough to want to use it more than for the projects that I've tried it out with. Not for me
+
 Pros:
 - Super easy to get started with. Nice starter docs
+- Small language
+
+Cons:
+- Removes a whole wack of stuff in a language that I don't find annoying or bad. Needlessly small
+- It seems like every type has to redefine the same functions (e.g. map, filter etc.)
+- The base operators for primitives are all different (adding floats is a different operator than ints)
+
